@@ -98,7 +98,13 @@
 .proj .grafico .eixo.sel { fill: var(--tinta); font-weight: 700; }
 .proj .grafico .alvo { cursor: pointer; }
 .proj .grafico .selo-atual { font-size: 11px; font-weight: 700; fill: #fff; font-family: var(--fonte); }
-.proj-totais { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; border-top: 1px solid var(--crm-border); border-bottom: 1px solid var(--crm-border); padding: 14px 8px; }
+.proj-mes-cab { border-top: 1px solid var(--crm-border); padding: 12px 20px 0; text-align: center; font-size: 14px; color: var(--tinta-2); }
+.proj-mes-cab b { color: var(--tinta); }
+.proj-mes-cab small { display: block; font-size: 12px; color: var(--crm-text-muted); margin-top: 2px; }
+.proj-totais { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; padding: 12px 8px 16px; }
+.proj-totais > div + div { border-left: 1px solid var(--crm-border); }
+.proj-totais small i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.proj-totais .det { display: block; font-size: 11.5px; color: var(--crm-text-muted); margin-top: 2px; }
 .proj-totais small { display: block; font-size: 13px; color: var(--tinta-2); }
 .proj-totais strong { display: block; font-size: 18px; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
 .proj-mes { background: var(--superficie-2); padding: 16px 20px 20px; }
@@ -164,16 +170,8 @@
           </div>
           <div class="legenda proj-leg" aria-hidden="true"><span><i class="g1"></i>Garantida (MRR e Fechadas)</span><span><i class="g2"></i>Projetado Recorrente</span><span><i class="g3"></i>Projetado Não Recorrente</span></div>
           <div class="grafico" id="proj-grafico"></div>
-          <div class="proj-totais">
-            <div><small>Total Garantido</small><strong>R$ 58.616</strong></div>
-            <div><small>Total Projetado</small><strong>R$ 16.800</strong></div>
-            <div><small>Total Geral</small><strong>R$ 75.416</strong></div>
-          </div>
-          <div class="proj-mes">
-            <label for="proj-sel">Selecionar Mês</label>
-            <select id="proj-sel"></select>
-            <div id="proj-linhas"></div>
-          </div>
+          <div class="proj-mes-cab" id="proj-mes-cab"></div>
+          <div class="proj-totais" id="proj-totais"></div>
         </section>
 
         <section class="secao">
@@ -287,8 +285,7 @@ var MES_ATUAL = 0; // novembro: leva o selo Atual no gráfico, mesmo com outro m
 var atual = MES_ATUAL; // o detalhe abre no mês atual
 
 (function () {
-  var g = document.getElementById('proj-grafico'), sel = document.getElementById('proj-sel'), linhas = document.getElementById('proj-linhas');
-  sel.innerHTML = MESES.map(function (m, i) { return '<option value="' + i + '">' + m.nome + (i === MES_ATUAL ? ' (Atual)' : '') + ': Total ' + real(total(m)) + '</option>'; }).join('');
+  var g = document.getElementById('proj-grafico'), cab = document.getElementById('proj-mes-cab'), totais = document.getElementById('proj-totais');
 
   function desenhar() {
     var W = Math.max(280, g.clientWidth - 18), H = W < 500 ? 318 : 338, esq = 52, dir = 6, topo = 30, base = 54;
@@ -323,19 +320,16 @@ var atual = MES_ATUAL; // o detalhe abre no mês atual
     g.querySelectorAll('.alvo').forEach(function (a) { a.addEventListener('click', function () { escolher(+a.dataset.i); }); });
   }
 
-  function linha(classe, rotulo, sub, valor, tot) {
-    var pct = tot ? Math.max(0, Math.min(100, valor / tot * 100)) : 0;
-    return '<div class="proj-linha"><div class="cab">' + rotulo + (sub ? '<small>' + sub + '</small>' : '') + '</div>' +
-      '<div class="corpo"><span class="trilho ' + classe + '"><i style="width:' + pct + '%"></i><b style="left:' + pct + '%"></b></span><span class="v">' + real(valor) + '</span></div></div>';
-  }
+  // embaixo do gráfico: os valores do mês escolhido (toque na barra troca o mês)
   function detalhe() {
-    var m = MESES[atual], tot = total(m);
-    linhas.innerHTML = linha('g1', 'Garantida (MRR e Fechadas)', real(m.mrr) + ' de MRR e ' + real(m.fech) + ' de propostas fechadas', gar(m), tot) +
-      linha('g2', 'Recorrente', 'Projetado do funil', m.pr, tot) +
-      linha('g3', 'Não Recorrente', 'Projetado do funil', m.pn, tot);
+    var m = MESES[atual];
+    cab.innerHTML = '<b>' + m.nome + (atual === MES_ATUAL ? ' (Atual)' : '') + ': ' + real(total(m)) + ' a receber</b><small>Toque numa barra para ver outro mês</small>';
+    totais.innerHTML =
+      '<div><small><i style="background:#2a78d6"></i>Garantida</small><strong>' + real(gar(m)) + '</strong><span class="det">' + real(m.mrr) + ' MRR + ' + real(m.fech) + ' fechadas</span></div>' +
+      '<div><small><i style="background:#e34948"></i>Recorrente</small><strong>' + real(m.pr) + '</strong><span class="det">Projetado</span></div>' +
+      '<div><small><i style="background:repeating-linear-gradient(45deg,#1baf7a 0 2px,#8fdcc0 2px 4px)"></i>Não Recorrente</small><strong>' + real(m.pn) + '</strong><span class="det">Projetado</span></div>';
   }
-  function escolher(i) { atual = i; sel.value = String(i); desenhar(); detalhe(); }
-  sel.addEventListener('change', function () { escolher(+sel.value); });
+  function escolher(i) { atual = i; desenhar(); detalhe(); }
   escolher(atual);
   var tm = null;
   window.addEventListener('resize', function () { clearTimeout(tm); tm = setTimeout(desenhar, 120); });
