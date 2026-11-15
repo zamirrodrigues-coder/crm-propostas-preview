@@ -31,6 +31,8 @@
     copiar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
     abrir: '<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/>',
     editar: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>',
+    painel: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    alerta: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
     compartilhar: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
     olho: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
     olhoRiscado: '<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.1 6.1A17 17 0 0 0 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.9-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'
@@ -78,7 +80,7 @@
     camada.innerHTML = '<div class="modal ' + (op.classe || '') + '" role="dialog" aria-modal="true" aria-label="' + esc(op.titulo) + '">' +
       '<div class="modal-cab"><h3>' + esc(op.titulo) + '</h3>' + (op.subtitulo ? '<p>' + esc(op.subtitulo) + '</p>' : '') + '</div>' +
       '<form class="modal-form" novalidate><div class="modal-corpo">' + op.corpo + '<p class="entrada-erro" data-erro role="alert"></p></div>' +
-      '<div class="modal-acoes">' + (op.obrigatorio ? '' : '<button type="button" class="btn btn-leve" data-cancelar>Cancelar</button>') +
+      '<div class="modal-acoes">' + (op.obrigatorio ? '' : '<button type="button" class="btn btn-leve" data-cancelar>' + esc(op.fechar || 'Cancelar') + '</button>') +
       '<button type="submit" class="btn btn-primario">' + esc(op.botao) + '</button></div></form></div>';
     function fechar() { camada.remove(); document.removeEventListener('keydown', tecla); }
     function tecla(ev) { if (ev.key === 'Escape' && !op.obrigatorio) fechar(); }
@@ -124,21 +126,68 @@
     var b = ev.target.closest('.olho');
     if (b) { ev.preventDefault(); verSenha(b, b.previousElementSibling.type === 'password'); }
   });
-  verSenha($('#entrada .olho'), false);
+  function esconderSenhas() { document.querySelectorAll('#entrada .olho').forEach(function (b) { verSenha(b, false); }); }
+  esconderSenhas();
 
   // ---------- entrada e estrutura ----------
+  // a área de entrada tem três formulários: Entrar, Esqueceu Sua Senha? e Crie Sua Nova Senha (pelo link do e-mail)
+  var FORM_ENTRADA = { entrar: ['#entrada-form', '#entrada-email'], esqueci: ['#esqueci-form', '#esqueci-email'], redefinir: ['#redefinir-form', '#redefinir-nova'] };
+  function telaEntrada(qual) {
+    Object.keys(FORM_ENTRADA).forEach(function (k) { $(FORM_ENTRADA[k][0]).hidden = k !== qual; });
+    document.querySelectorAll('#entrada .entrada-erro').forEach(function (e) { e.textContent = ''; });
+    if (qual !== 'entrar') $('#entrada-recado').hidden = true;
+    if (qual === 'esqueci') { $('#esqueci-recado').hidden = true; $('#esqueci-email').value = $('#entrada-email').value; }
+    esconderSenhas();
+    setTimeout(function () { $(FORM_ENTRADA[qual][1]).focus(); }, 30);
+  }
   function mostrarEntrada() {
     $('#app').hidden = true;
     $('#entrada').hidden = false;
     $('#usuario-menu').hidden = true;
-    verSenha($('#entrada .olho'), false);
     document.querySelectorAll('.camada').forEach(function (c) { c.remove(); });
-    setTimeout(function () { $('#entrada-email').focus(); }, 30);
+    telaEntrada('entrar');
   }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-entrada]');
+    if (!b) return;
+    if (tokenRedefinir && b.getAttribute('data-entrada') === 'entrar') { tokenRedefinir = ''; history.replaceState(null, '', location.pathname); }
+    telaEntrada(b.getAttribute('data-entrada'));
+  });
+  $('#esqueci-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var btn = $('#esqueci-btn'), erro = $('#esqueci-erro'), email = $('#esqueci-email').value.trim();
+    erro.textContent = '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { erro.textContent = 'Informe um e-mail válido.'; return; }
+    btn.disabled = true;
+    api('POST', '/esqueci', { email: email })
+      .then(function () { $('#esqueci-recado').hidden = false; })
+      .catch(function (e) { erro.textContent = e.message; })
+      .then(function () { btn.disabled = false; });
+  });
+  // o código do link vem depois do # (não vai para o servidor nem fica em registro de acesso)
+  var tokenRedefinir = (location.hash.match(/^#\/redefinir\/([a-f0-9]{64})$/) || [])[1] || '';
+  $('#redefinir-form').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var btn = $('#redefinir-btn'), erro = $('#redefinir-erro'), nova = $('#redefinir-nova').value;
+    erro.textContent = '';
+    if (nova !== $('#redefinir-repete').value) { erro.textContent = 'As duas senhas não são iguais.'; return; }
+    btn.disabled = true;
+    api('POST', '/redefinir', { token: tokenRedefinir, nova: nova })
+      .then(function () {
+        tokenRedefinir = '';
+        history.replaceState(null, '', location.pathname);
+        $('#redefinir-nova').value = ''; $('#redefinir-repete').value = '';
+        telaEntrada('entrar');
+        $('#entrada-recado').textContent = 'Senha criada. Entre com a nova senha.';
+        $('#entrada-recado').hidden = false;
+      })
+      .catch(function (e) { erro.textContent = e.message; })
+      .then(function () { btn.disabled = false; });
+  });
   $('#entrada-form').addEventListener('submit', function (ev) {
     ev.preventDefault();
     var btn = $('#entrada-btn'), erro = $('#entrada-erro');
-    btn.disabled = true; erro.textContent = '';
+    btn.disabled = true; erro.textContent = ''; $('#entrada-recado').hidden = true;
     api('POST', '/entrar', { email: $('#entrada-email').value, senha: $('#entrada-senha').value })
       .then(function () { $('#entrada-senha').value = ''; iniciar(); })
       .catch(function (e) { erro.textContent = e.message; })
@@ -146,6 +195,7 @@
   });
 
   var TELAS = {
+    painel: { titulo: 'Painel', desc: 'Quanto você tem a receber, a receita projetada e os negócios em andamento.', icone: 'painel' },
     funil: { titulo: 'Funil', desc: 'Oportunidades por etapa. Arraste o cartão para mudar a etapa.', icone: 'funil' },
     propostas: { titulo: 'Propostas', desc: 'Uma linha por proposta de cliente. As versões ficam dentro de cada proposta.', icone: 'documento' },
     empresas: { titulo: 'Empresas', desc: 'Cadastro das empresas e dos contatos.', icone: 'empresas' }
@@ -215,6 +265,7 @@
     $('#icone-tela').innerHTML = icone(t.icone);
     $('#topo-acoes').innerHTML = acoes || '';
     document.title = t.titulo + ' | CRM de Propostas';
+    estado.volta = id;
     menu(id);
   }
 
@@ -242,14 +293,13 @@
     api('GET', '/oportunidades').then(function (lista) {
       var b = estado.busca.toLowerCase();
       var vis = lista.filter(function (o) { return !b || (o.empresa + ' ' + (o.contato_nome || '') + ' ' + (o.cidade || '')).toLowerCase().indexOf(b) >= 0; });
-      // no celular o Funil mostra uma etapa por vez, escolhida nas abas (no computador as abas não aparecem)
-      if (!estado.etapas[estado.etapaCel]) estado.etapaCel = estado.ordem[0];
-      var abas = '';
+      // no celular as etapas ficam uma embaixo da outra, abertas; cada uma recolhe e expande (no computador, colunas)
+      estado.recolhidas = estado.recolhidas || {};
       var colunas = estado.ordem.map(function (e) {
         var daEtapa = vis.filter(function (o) { return o.etapa === e; });
         var cls = e === 'ganho' ? ' fim-ganho' : e === 'perdido' ? ' fim-perdido' : e === 'futuro' ? ' lado-futuro' : e === 'frio' ? ' lado-frio' : '';
-        abas += '<button type="button" role="tab" data-aba="' + e + '" aria-selected="' + (e === estado.etapaCel) + '">' + esc(estado.etapas[e]) + '<span class="qtd">' + daEtapa.length.toLocaleString('pt-BR') + '</span></button>';
-        return '<div class="coluna' + cls + (e === estado.etapaCel ? ' na-aba' : '') + '" data-etapa="' + e + '"><div class="coluna-cab"><h4>' + esc(estado.etapas[e]) + '</h4><span class="qtd">' + daEtapa.length.toLocaleString('pt-BR') + '</span></div>' +
+        var fechada = !!estado.recolhidas[e];
+        return '<div class="coluna' + cls + (fechada ? ' recolhida' : '') + '" data-etapa="' + e + '"><div class="coluna-cab" data-alternar="' + e + '" tabindex="0" aria-expanded="' + !fechada + '"><h4>' + esc(estado.etapas[e]) + '</h4><span class="qtd">' + daEtapa.length.toLocaleString('pt-BR') + '</span>' + icone('chevron', 'seta-etapa') + '</div>' +
           '<div class="coluna-cartoes">' + (daEtapa.map(cartao).join('') || '<div class="vazio vazio-coluna">Nenhuma Oportunidade</div>') + '</div></div>';
       }).join('');
       var manter = document.activeElement && document.activeElement.id === 'funil-busca';
@@ -257,7 +307,7 @@
         '<input type="search" id="funil-busca" placeholder="Buscar por empresa, contato ou cidade" aria-label="Buscar por empresa, contato ou cidade" value="' + esc(estado.busca) + '"></label>' +
         (estado.busca ? '<button type="button" class="limpar" id="funil-limpar">Limpar</button>' : '') +
         '<span class="dica-arrastar filtro-conta">' + vis.length.toLocaleString('pt-BR') + (vis.length === 1 ? ' oportunidade' : ' oportunidades') + '</span></div>' +
-        '<div class="funil-abas" role="tablist" aria-label="Etapas do Funil">' + abas + '</div>' +
+        '<div class="funil-acoes"><button type="button" class="btn btn-p" data-funil="expandir">Expandir Todos</button><button type="button" class="btn btn-p" data-funil="recolher">Recolher Todos</button></div>' +
         '<div class="quadro">' + colunas + '</div>';
       ligarFunil(raiz, manter);
     }).catch(function (e) { raiz.innerHTML = '<div class="vazio">' + esc(e.message) + '</div>'; });
@@ -270,14 +320,24 @@
     busca.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { estado.busca = busca.value; telaFunil(); }, 200); });
     var limpar = $('#funil-limpar', raiz);
     if (limpar) limpar.addEventListener('click', function () { estado.busca = ''; telaFunil(); });
-    var abaAtiva = raiz.querySelector('.funil-abas [aria-selected="true"]');
-    if (abaAtiva) abaAtiva.scrollIntoView({ block: 'nearest', inline: 'center' });
-    raiz.querySelectorAll('[data-aba]').forEach(function (b) {
+    // recolher e expandir etapas (só no celular; no computador as colunas ficam sempre abertas)
+    var celular = function () { return window.matchMedia('(max-width: 767px)').matches; };
+    var marcar = function (col, fechada) {
+      var e = col.getAttribute('data-etapa');
+      if (fechada) estado.recolhidas[e] = true; else delete estado.recolhidas[e];
+      col.classList.toggle('recolhida', fechada);
+      $('.coluna-cab', col).setAttribute('aria-expanded', String(!fechada));
+    };
+    raiz.querySelectorAll('[data-alternar]').forEach(function (cab) {
+      var col = cab.closest('.coluna');
+      var alterna = function () { if (celular()) marcar(col, !col.classList.contains('recolhida')); };
+      cab.addEventListener('click', alterna);
+      cab.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); alterna(); } });
+    });
+    raiz.querySelectorAll('[data-funil]').forEach(function (b) {
       b.addEventListener('click', function () {
-        estado.etapaCel = b.getAttribute('data-aba');
-        raiz.querySelectorAll('[data-aba]').forEach(function (x) { x.setAttribute('aria-selected', String(x === b)); });
-        raiz.querySelectorAll('.coluna').forEach(function (c) { c.classList.toggle('na-aba', c.getAttribute('data-etapa') === estado.etapaCel); });
-        b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+        var fechar = b.getAttribute('data-funil') === 'recolher';
+        raiz.querySelectorAll('.coluna').forEach(function (col) { marcar(col, fechar); });
       });
     });
     raiz.querySelectorAll('.card').forEach(function (el) {
@@ -303,7 +363,11 @@
 
   function mover(id, etapa, depois) {
     return api('POST', '/oportunidades/' + id + '/etapa', { etapa: etapa })
-      .then(function (o) { aviso(o.empresa.nome + ' foi para ' + estado.etapas[o.etapa] + '.'); })
+      .then(function (o) {
+        aviso(o.empresa.nome + ' foi para ' + estado.etapas[o.etapa] + '.');
+        // fechou: registra o contrato para a receita entrar como Garantida no Painel
+        if (o.etapa === 'ganho' && !(o.contratos || []).length) registrarContrato(o, depois);
+      })
       .catch(function (e) { aviso(e.message, true); })
       .then(depois);
   }
@@ -681,6 +745,9 @@
     var ops = e && e.oportunidades && e.oportunidades.length ? '<div class="campo-grupo">Oportunidades</div><div class="lista-ops">' + e.oportunidades.map(function (o) {
       return '<a href="#/oportunidade/' + o.id + '" class="chip chip-neutro" data-fechar>Oportunidade ' + o.id + ' · ' + esc(estado.etapas[o.etapa]) + '</a>';
     }).join('') + '</div>' : '';
+    // contratos e vendas do cliente (entram como Garantida no Painel)
+    if (e) ops += '<div class="campo-grupo">Contratos e Vendas</div>' + (e.contratos && e.contratos.length ? '<div class="contratos-lista">' + e.contratos.map(function (x) { return itemContrato(x, false); }).join('') + '</div>' : '<p class="op-nada">Nenhum contrato ainda.</p>') +
+      '<div class="op-card-btns"><button type="button" class="btn btn-p" data-novo-contrato>' + icone('mais', 'icone-p') + 'Novo Contrato</button><button type="button" class="btn btn-p" data-lancar-venda>' + icone('mais', 'icone-p') + 'Lançar Venda</button></div>';
     var camada = modal({
       titulo: e ? 'Editar Empresa' : 'Nova Empresa', subtitulo: 'Só o nome é obrigatório.', botao: e ? 'Salvar' : 'Cadastrar Empresa', classe: 'largo',
       corpo: '<div class="campo-grupo">Empresa</div>' + campo('nome', 'Nome', e && e.nome, 'text', 'maxlength="160" required') +
@@ -700,6 +767,14 @@
       }
     });
     camada.querySelectorAll('[data-fechar]').forEach(function (a) { a.addEventListener('click', function () { camada.remove(); }); });
+    if (e) {
+      var aEmpresa = { id: e.id, nome: e.nome };
+      $('[data-novo-contrato]', camada).addEventListener('click', function () { camada.remove(); formContrato({ empresa: aEmpresa }, depois); });
+      $('[data-lancar-venda]', camada).addEventListener('click', function () { camada.remove(); formVenda(aEmpresa, depois); });
+      camada.querySelectorAll('[data-contrato]').forEach(function (el) {
+        el.addEventListener('click', function () { camada.remove(); abrirContrato(e.contratos.filter(function (x) { return String(x.id) === el.getAttribute('data-contrato'); })[0], depois); });
+      });
+    }
   }
 
   // ---------- Oportunidade ----------
@@ -745,6 +820,7 @@
         '</div>' + (e.observacao ? '<p class="op-obs">' + esc(e.observacao) + '</p>' : '') + '</div>' +
         '<div class="op-card"><h3>Histórico</h3><div class="linha-tempo op-tempo">' + (hist || '<div class="op-nada">Sem registros.</div>') + '</div></div>' +
         '</div><div class="op-lado">' +
+        cardValores(o, linha) +
         '<div class="op-card"><h3>Etapa</h3><label class="campo campo-sem-margem"><span>Mudar para</span><select id="op-etapa-sel" class="op-select">' +
         estado.ordem.map(function (x) { return '<option value="' + x + '"' + (x === o.etapa ? ' selected' : '') + '>' + esc(estado.etapas[x]) + '</option>'; }).join('') + '</select></label></div>' +
         '<div class="op-card"><h3>Propostas</h3><div id="op-propostas"><div class="op-nada">Carregando</div></div></div>' +
@@ -757,7 +833,7 @@
       $('#app').appendChild(camada);
       menu('funil');
       document.title = e.nome + ' | CRM de Propostas';
-      $('#op-voltar', camada).addEventListener('click', function () { location.hash = '#/funil'; });
+      $('#op-voltar', camada).addEventListener('click', function () { location.hash = '#/' + (estado.volta === 'painel' ? 'painel' : 'funil'); });
       var editar = function () { formEmpresa(e, function () { telaOportunidade(id); }); };
       $('#op-editar', camada).addEventListener('click', editar);
       var add = $('#op-add-contato', camada);
@@ -768,11 +844,329 @@
       });
       $('#op-etapa-sel', camada).addEventListener('change', function (ev) { mover(id, ev.target.value, re); });
       cardPropostas(o, $('#op-propostas', camada), re);
+      ligarValores(o, camada, re);
     }).catch(function (er) {
       aviso(er.message, true);
       if (er.http === 404) location.hash = '#/funil';
     });
   }
+
+  // ---------- Receita: valores previstos, contratos, Lançar Venda e Painel (Fase 1) ----------
+  // Toda conta mora no servidor (/painel); aqui só se mostra e se envia. Larguras de barra vão por el.style
+  // (a política de segurança do CRM não aceita estilo dentro do HTML).
+  var NOMES_MES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  function real(v) { return moeda.format(v || 0); }
+  function mesDe(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+  function mesAtual() { return mesDe(new Date()); }
+  function mesSeguinte(m) { var a = +m.slice(0, 4), b = +m.slice(5, 7) + 1; if (b > 12) { b = 1; a++; } return a + '-' + String(b).padStart(2, '0'); }
+  function nomeMes(m) { return m ? NOMES_MES[+m.slice(5, 7) - 1] + ' de ' + m.slice(0, 4) : ''; }
+  function plural(n, um, varios) { return n.toLocaleString('pt-BR') + ' ' + (n === 1 ? um : varios); }
+  function valor(c, n) { var el = $('[name=' + n + ']', c); return el ? el.value.trim() : ''; }
+  function radio(c, n) { return ($('input[name=' + n + ']:checked', c) || {}).value; }
+  function campoValor(nome, rotulo, v, ajuda) {
+    return '<label class="campo"><span>' + esc(rotulo) + '</span><input type="number" name="' + nome + '" min="0" step="1" inputmode="numeric" value="' + (v || v === 0 ? esc(String(v)) : '') + '">' + (ajuda ? '<small>' + esc(ajuda) + '</small>' : '') + '</label>';
+  }
+  function escolhaTipo(nome, atual, opcoes) {
+    return '<div class="escolha-tipo">' + opcoes.map(function (o) {
+      return '<label><input type="radio" name="' + nome + '" value="' + o[0] + '"' + (o[0] === atual ? ' checked' : '') + '>' + esc(o[1]) + '</label>';
+    }).join('') + '</div>';
+  }
+  // campos que só valem para projeto com prazo
+  function ligarTipo(camada) {
+    var ajusta = function () { camada.querySelectorAll('[data-so-projeto]').forEach(function (el) { el.hidden = radio(camada, 'tipo') !== 'projeto'; }); };
+    camada.addEventListener('change', ajusta); ajusta();
+  }
+  function resumoContrato(c) {
+    if (c.origem === 'venda') return 'Venda: ' + c.quantidade + ' × ' + real(c.valor_unitario) + (c.mensal ? ' por mês, desde ' + nomeMes(c.inicio) : ', em ' + nomeMes(c.unica_mes));
+    var p = [];
+    if (c.mensal) p.push((c.meses ? 'Projeto de ' + c.meses + ' meses' : 'Recorrente') + ' desde ' + nomeMes(c.inicio) + (c.desconto_pct && c.desconto_meses ? ', ' + c.desconto_pct + '% nos ' + c.desconto_meses + ' primeiros' : ''));
+    if (c.unica) p.push(real(c.unica) + ' de receita única em ' + nomeMes(c.unica_mes) + (c.unica_parcelas > 1 ? ' (' + c.unica_parcelas + 'x)' : ''));
+    return p.join(' · ');
+  }
+  function itemContrato(c, comEmpresa) {
+    return '<div class="contrato-item" data-contrato="' + c.id + '" tabindex="0"><div class="txt"><strong>' + esc(comEmpresa ? c.empresa : c.descricao) + '</strong><small>' +
+      esc((comEmpresa ? c.descricao + ' · ' : '') + resumoContrato(c)) + '</small></div><div class="val">' +
+      (c.mensal ? real(c.mensal) + '<small>' + (c.meses ? 'por mês, com prazo' : 'por mês') + '</small>' : real(c.unica) + '<small>única</small>') + '</div></div>';
+  }
+
+  // valores previstos da oportunidade (usados no Painel, ponderados pela chance da etapa)
+  function cardValores(o, linha) {
+    var c = '<div class="op-card op-valores"><h3>Valores e Previsão</h3><div class="op-linhas">' +
+      linha('documento', 'Mensalidade', o.prev_mensal ? esc(real(o.prev_mensal)) + '<small>' + (o.prev_tipo === 'projeto' ? 'Projeto de ' + o.prev_meses + ' meses' : 'Recorrente') + '</small>' : '') +
+      linha('documento', 'Receita Única', o.prev_unica ? esc(real(o.prev_unica)) : '') +
+      linha('relogio', 'Fechamento', o.prev_fechamento ? esc(dataCurta(o.prev_fechamento)) : '') +
+      '</div><div class="op-card-btns"><button type="button" class="btn btn-p" id="op-valores">' + icone('editar', 'icone-p') + 'Editar Valores</button></div></div>';
+    if (o.etapa === 'ganho') {
+      c += '<div class="op-card"><h3>Contrato</h3>' + (o.contratos.length
+        ? '<div class="contratos-lista">' + o.contratos.map(function (x) { return itemContrato(x, false); }).join('') + '</div>'
+        : '<p class="op-nada">O negócio fechou. Registre o contrato para a receita entrar como garantida no Painel.</p><button type="button" class="btn btn-primario btn-bloco" id="op-registrar">Registrar Contrato</button>') + '</div>';
+    }
+    return c;
+  }
+  function ligarValores(o, camada, re) {
+    $('#op-valores', camada).addEventListener('click', function () { formPrevisao(o, re); });
+    var reg = $('#op-registrar', camada);
+    if (reg) reg.addEventListener('click', function () { registrarContrato(o, re); });
+    camada.querySelectorAll('.op-valores ~ .op-card [data-contrato]').forEach(function (el) {
+      el.addEventListener('click', function () { abrirContrato(o.contratos.filter(function (x) { return String(x.id) === el.getAttribute('data-contrato'); })[0], re); });
+    });
+  }
+  function formPrevisao(o, depois) {
+    var projeto = o.prev_tipo === 'projeto';
+    var camada = modal({
+      titulo: 'Valores e Previsão', subtitulo: 'Usados no Painel. A chance da etapa pondera estes valores.', botao: 'Salvar',
+      corpo: '<div class="campo-grupo">Mensalidade</div>' + escolhaTipo('tipo', projeto ? 'projeto' : 'recorrente', [['recorrente', 'Recorrente'], ['projeto', 'Projeto com Prazo']]) +
+        '<div class="duas">' + campoValor('mensal', 'Mensalidade Prevista (R$)', o.prev_mensal) +
+        '<label class="campo" data-so-projeto><span>Por Quantos Meses</span><input type="number" name="meses" min="1" max="120" inputmode="numeric" value="' + (o.prev_meses || '') + '"></label></div>' +
+        '<div class="campo-grupo">Receita Única e Fechamento</div>' +
+        '<div class="duas">' + campoValor('unica', 'Receita Única Prevista (R$)', o.prev_unica, 'Implantação ou valor cobrado uma vez.') +
+        '<label class="campo"><span>Data Prevista de Fechamento</span><input type="date" name="fechamento" value="' + esc(o.prev_fechamento || '') + '"></label></div>',
+      enviar: function (c) {
+        return api('PUT', '/oportunidades/' + o.id + '/previsao', { tipo: radio(c, 'tipo'), mensal: valor(c, 'mensal'), meses: valor(c, 'meses'), unica: valor(c, 'unica'), fechamento: valor(c, 'fechamento') })
+          .then(function () { aviso('Valores salvos. O Painel já considera.'); depois(); });
+      }
+    });
+    ligarTipo(camada);
+  }
+
+  // contrato: registrar no Ganho (com a sugestão da assinatura ou da previsão), cadastrar cliente que já paga, editar
+  function registrarContrato(o, depois) {
+    api('GET', '/oportunidades/' + o.id + '/contrato-sugerido').then(function (s) { formContrato({ oportunidade: o, sugestao: s }, depois); })
+      .catch(function (e) { aviso(e.message, true); });
+  }
+  function abrirContrato(c, depois) {
+    if (!c) return;
+    if (c.origem !== 'venda') return formContrato({ contrato: c }, depois);
+    modal({
+      titulo: 'Venda Lançada', subtitulo: c.empresa + ': ' + c.descricao, botao: 'Cancelar Esta Venda', fechar: 'Voltar',
+      corpo: '<p class="op-nada">' + esc(resumoContrato(c)) + '. Total de ' + esc(real(c.mensal || c.unica)) + (c.mensal ? ' por mês' : '') + '.</p>' +
+        '<p class="op-nada">Venda lançada não se edita. Se algo mudou, cancele e lance de novo.</p>',
+      enviar: function () { return api('POST', '/contratos/' + c.id + '/cancelar', {}).then(function () { aviso('Venda cancelada. Saiu do Painel.'); depois(); }); }
+    });
+  }
+  function formContrato(op, depois) {
+    var c = op.contrato || op.sugestao || {};
+    var novo = !op.contrato;
+    var escolher = novo && !op.oportunidade && !op.empresa;
+    var nome = op.contrato ? op.contrato.empresa : op.oportunidade ? op.oportunidade.empresa.nome : op.empresa ? op.empresa.nome : '';
+    var sub = op.contrato ? 'As mudanças valem no Painel na hora.'
+      : op.oportunidade ? (c.origem === 'assinatura' ? 'Valores da assinatura do cliente. Confira e salve.' : 'Valores previstos na oportunidade. Confira e salve.')
+      : 'Para um cliente que já paga. Entra como garantida no Painel.';
+    var abrir = function (lista) {
+      var corpo = (escolher
+        ? '<label class="campo"><span>Cliente</span><input type="text" name="cliente" list="lista-clientes-c" autocomplete="off" required placeholder="Comece a digitar o nome"></label><datalist id="lista-clientes-c">' +
+          lista.map(function (e) { return '<option value="' + esc(e.nome) + '">'; }).join('') + '</datalist>'
+        : '<div class="campo-grupo">' + esc(nome) + '</div>') +
+        campo('descricao', 'O Que Foi Contratado', c.descricao || '', 'text', 'maxlength="120" required placeholder="Ex.: Plataforma com a Joice"') +
+        '<div class="campo-grupo">Mensalidade</div>' + escolhaTipo('tipo', c.tipo === 'projeto' ? 'projeto' : 'recorrente', [['recorrente', 'Recorrente'], ['projeto', 'Projeto com Prazo']]) +
+        '<div class="duas">' + campoValor('mensal', 'Mensalidade (R$)', c.mensal || '') +
+        '<label class="campo"><span>Início da Cobrança</span><input type="month" name="inicio" value="' + esc(c.inicio || mesSeguinte(mesAtual())) + '"></label></div>' +
+        '<label class="campo" data-so-projeto><span>Por Quantos Meses</span><input type="number" name="meses" min="1" max="120" inputmode="numeric" value="' + (c.meses || '') + '"></label>' +
+        '<div class="duas"><label class="campo"><span>Desconto Temporário (%)</span><input type="number" name="desconto_pct" min="0" max="100" inputmode="numeric" value="' + (c.desconto_pct || '') + '"></label>' +
+        '<label class="campo"><span>Nos Primeiros Meses</span><input type="number" name="desconto_meses" min="0" max="60" inputmode="numeric" value="' + (c.desconto_meses || '') + '"><small>O desconto não reduz o MRR.</small></label></div>' +
+        '<div class="campo-grupo">Receita Única</div>' +
+        '<div class="tres">' + campoValor('unica', 'Valor (R$)', c.unica || '') +
+        '<label class="campo"><span>Mês</span><input type="month" name="unica_mes" value="' + esc(c.unica_mes || mesAtual()) + '"></label>' +
+        '<label class="campo"><span>Parcelas</span><input type="number" name="unica_parcelas" min="1" max="36" inputmode="numeric" value="' + (c.unica_parcelas || 1) + '"></label></div>' +
+        (op.contrato ? '<button type="button" class="btn-texto-perigo" data-cancelar-contrato>Cancelar Este Contrato</button>' : '');
+      var camada = modal({
+        titulo: novo ? (op.oportunidade ? 'Registrar Contrato' : 'Novo Contrato') : 'Editar Contrato', subtitulo: sub, botao: 'Salvar Contrato', classe: 'largo', corpo: corpo,
+        enviar: function (m) {
+          var d = { descricao: valor(m, 'descricao'), tipo: radio(m, 'tipo'), mensal: valor(m, 'mensal'), inicio: valor(m, 'inicio'), meses: valor(m, 'meses'),
+            desconto_pct: valor(m, 'desconto_pct'), desconto_meses: valor(m, 'desconto_meses'), unica: valor(m, 'unica'), unica_mes: valor(m, 'unica_mes'), unica_parcelas: valor(m, 'unica_parcelas') };
+          if (op.oportunidade) d.oportunidade_id = op.oportunidade.id;
+          else if (op.empresa) d.empresa_id = op.empresa.id;
+          else if (escolher) {
+            var alvo = valor(m, 'cliente').toLowerCase(), e = lista.filter(function (x) { return x.nome.toLowerCase() === alvo; })[0];
+            if (!e) return Promise.reject(new Error('Escolha um cliente cadastrado. Para um cliente novo, cadastre a empresa em Empresas.'));
+            d.empresa_id = e.id;
+          }
+          return api(novo ? 'POST' : 'PUT', novo ? '/contratos' : '/contratos/' + op.contrato.id, d).then(function () { aviso('Contrato salvo. Já entra no Painel.'); depois(); });
+        }
+      });
+      ligarTipo(camada);
+      var cx = $('[data-cancelar-contrato]', camada);
+      if (cx) cx.addEventListener('click', function () {
+        if (!window.confirm('Cancelar este contrato? Ele sai do Painel.')) return;
+        api('POST', '/contratos/' + op.contrato.id + '/cancelar', {}).then(function () { camada.remove(); aviso('Contrato cancelado. Saiu do Painel.'); depois(); })
+          .catch(function (e) { aviso(e.message, true); });
+      });
+    };
+    if (escolher) api('GET', '/empresas').then(abrir).catch(function (e) { aviso(e.message, true); }); else abrir([]);
+  }
+
+  // Lançar Venda: venda a quem já é cliente, sem proposta; entra como garantida no mês escolhido (o próximo, por padrão)
+  function formVenda(empresa, depois) {
+    var abrir = function (lista) {
+      var camada = modal({
+        titulo: 'Lançar Venda', subtitulo: 'Venda a quem já é cliente, sem proposta. Entra como garantida no Painel.', botao: 'Lançar Venda',
+        corpo: (empresa ? '<div class="campo-grupo">' + esc(empresa.nome) + '</div>'
+          : '<label class="campo"><span>Cliente</span><input type="text" name="cliente" list="lista-clientes-v" autocomplete="off" required placeholder="Comece a digitar o nome"></label><datalist id="lista-clientes-v">' +
+            lista.map(function (e) { return '<option value="' + esc(e.nome) + '">'; }).join('') + '</datalist>') +
+          campo('descricao', 'O Que Foi Vendido', '', 'text', 'maxlength="120" required placeholder="Ex.: Landing Page"') +
+          escolhaTipo('tipo', 'unica', [['unica', 'Venda Única'], ['recorrente', 'Recorrente']]) +
+          '<div class="tres"><label class="campo"><span>Quantidade</span><input type="number" name="quantidade" min="1" max="9999" inputmode="numeric" value="1"></label>' +
+          campoValor('valor_unitario', 'Valor de Cada (R$)', '') +
+          '<label class="campo campo-total"><span>Total</span><input type="text" name="total" readonly value=""></label></div>' +
+          '<label class="campo"><span data-rot-mes>Mês de Faturamento</span><input type="month" name="mes" value="' + mesSeguinte(mesAtual()) + '"><small data-dica-mes></small></label>',
+        enviar: function (c) {
+          var id = empresa ? empresa.id : null;
+          if (!id) {
+            var alvo = valor(c, 'cliente').toLowerCase(), e = lista.filter(function (x) { return x.nome.toLowerCase() === alvo; })[0];
+            if (!e) return Promise.reject(new Error('Escolha um cliente cadastrado. Para um cliente novo, cadastre a empresa em Empresas.'));
+            id = e.id;
+          }
+          return api('POST', '/vendas', { empresa_id: id, descricao: valor(c, 'descricao'), tipo: radio(c, 'tipo'), quantidade: valor(c, 'quantidade'), valor_unitario: valor(c, 'valor_unitario'), mes: valor(c, 'mes') })
+            .then(function (r) {
+              aviso(r.mensal ? 'Venda recorrente de ' + real(r.mensal) + ' por mês a partir de ' + nomeMes(r.inicio) + '.' : 'Venda de ' + real(r.unica) + ' lançada para ' + nomeMes(r.unica_mes) + '.');
+              depois();
+            });
+        }
+      });
+      var atualiza = function () {
+        var q = parseInt(valor(camada, 'quantidade'), 10) || 0, u = parseInt(valor(camada, 'valor_unitario'), 10) || 0, rec = radio(camada, 'tipo') === 'recorrente';
+        $('[name=total]', camada).value = q && u ? real(q * u) + (rec ? ' por mês' : '') : '';
+        $('[data-rot-mes]', camada).textContent = rec ? 'A Partir de' : 'Mês de Faturamento';
+        $('[data-dica-mes]', camada).textContent = rec ? 'Soma ao MRR a partir deste mês.' : 'Entra como receita única neste mês.';
+      };
+      camada.addEventListener('input', atualiza); camada.addEventListener('change', atualiza); atualiza();
+    };
+    if (empresa) abrir([]); else api('GET', '/empresas').then(abrir).catch(function (e) { aviso(e.message, true); });
+  }
+
+  // ---------- Painel ----------
+  function kpi(titulo, valorTxt, sub) { return '<div class="kpi"><small>' + esc(titulo) + '</small><strong>' + esc(valorTxt) + '</strong><span>' + sub + '</span></div>'; }
+  function telaPainel() {
+    cabecalho('painel', '<button type="button" class="btn btn-primario" id="lancar-venda" aria-label="Lançar Venda">' + icone('mais', 'icone-p') + '<span class="btn-rot">Lançar Venda</span></button>');
+    $('#lancar-venda').addEventListener('click', function () { formVenda(null, telaPainel); });
+    var raiz = $('#tela');
+    if (!raiz.querySelector('.painel')) raiz.innerHTML = '<div class="vazio">Carregando</div>';
+    Promise.all([api('GET', '/painel'), api('GET', '/contratos')]).then(function (r) {
+      if (estado.volta !== 'painel') return;
+      desenharPainel(raiz, r[0], r[1]);
+    }).catch(function (e) { raiz.innerHTML = '<div class="vazio">' + esc(e.message) + '</div>'; });
+  }
+  function desenharPainel(raiz, p, contratos) {
+    estado.painel = p;
+    if (estado.painelMes == null || estado.painelMes >= p.meses.length) estado.painelMes = 0;
+    var m = p.meses, f = p.faturar, r = p.receita, a = p.andamento, d = p.desempenho;
+    var de = m[0].nome.toLowerCase(), ate = m[m.length - 1].nome.toLowerCase();
+    var maxEtapa = Math.max.apply(null, p.etapas.map(function (x) { return x.mrr; }).concat([1]));
+    var selo = function (x) {
+      var perigo = x.tipo === 'vence' || x.tipo === 'data_passou' || x.tipo === 'sem_contrato';
+      return '<span class="selo ' + (perigo ? 'selo-perigo' : 'selo-alerta') + '">' + icone(x.tipo === 'vence' || x.tipo === 'data_passou' ? 'relogio' : 'alerta') + esc(x.selo) + '</span>';
+    };
+    var prevTot = p.previsao.reduce(function (s, x) { return [s[0] + x.qtd, s[1] + x.mrr_pond, s[2] + x.unica_pond]; }, [0, 0, 0]);
+    raiz.innerHTML = '<div class="painel">' +
+      '<section class="proj" aria-label="Projeção de Recebimento"><div class="proj-cab"><h3>Projeção de Recebimento</h3><p>' + esc(m[0].nome + ' a ' + m[m.length - 1].nome) + ': o que já é garantido e o que o funil projeta</p></div>' +
+      '<div class="legenda proj-leg" aria-hidden="true"><span><i class="sw sw1"></i>Garantida (MRR e Fechadas)</span><span><i class="sw sw2"></i>Projetado Recorrente</span><span><i class="sw sw3"></i>Projetado Não Recorrente</span></div>' +
+      '<div class="grafico" id="proj-grafico"></div><div class="proj-mes-cab" id="proj-mes-cab"></div><div class="proj-totais" id="proj-totais"></div></section>' +
+
+      '<section class="secao"><h3>Quanto Tenho para Faturar</h3><p class="dica">Só o que já está contratado: mensalidades dos clientes, propostas fechadas e vendas lançadas.</p>' +
+      '<div class="destaque"><div class="destaque-num"><small>A Faturar nos Próximos ' + m.length + ' Meses</small><strong>' + esc(real(f.total)) + '</strong><span>De ' + esc(de) + ' a ' + esc(ate) + ' · ' + esc(real(f.recorrente)) + ' recorrente e ' + esc(real(f.unica)) + ' única</span></div>' +
+      '<div class="kpis kpis-3">' + kpi('A Faturar em ' + f.mes_atual.nome, real(f.mes_atual.total), esc(real(f.mes_atual.recorrente) + ' recorrente e ' + real(f.mes_atual.unica) + ' única')) +
+      kpi('Clientes Ativos', String(f.clientes), esc(plural(f.clientes_recorrentes, 'recorrente', 'recorrentes') + (f.clientes_outros ? ' e ' + plural(f.clientes_outros, 'só com receita única', 'só com receita única') : ''))) +
+      kpi('MRR Contratado', real(f.mrr), f.mrr_novo ? '<b>+ ' + esc(real(f.mrr_novo)) + '</b> novos em ' + esc(f.mes_atual.nome.toLowerCase()) : 'Nenhum novo em ' + esc(f.mes_atual.nome.toLowerCase())) + '</div></div></section>' +
+      '<div class="cartao-p"><div class="cartao-cab-p"><h4>Clientes e Contratos</h4><button type="button" class="btn btn-p" id="novo-contrato">' + icone('mais', 'icone-p') + 'Novo Contrato</button></div>' +
+      (contratos.length ? '<div class="contratos-lista">' + contratos.map(function (c) { return itemContrato(c, true); }).join('') + '</div>'
+        : '<p class="vazio-p">Nenhum contrato ainda. Cadastre os clientes que já pagam para a garantida aparecer.</p>') + '</div>' +
+
+      '<section class="secao"><h3>Quanto Terei de Receita</h3><p class="dica">O contratado somado à projeção do funil, ponderada pela chance de cada etapa.</p>' +
+      '<div class="destaque"><div class="destaque-num destaque-2"><small>Receita nos Próximos ' + m.length + ' Meses</small><strong>' + esc(real(r.total)) + '</strong><span>' + esc(real(r.garantido)) + ' contratado + ' + esc(real(r.projetado)) + ' projeção do funil</span></div>' +
+      '<div class="kpis kpis-3">' + kpi('Recorrente em ' + m.length + ' Meses', real(r.recorrente.total), esc(real(r.recorrente.contratado) + ' contratado + ' + real(r.recorrente.projetado) + ' projeção')) +
+      kpi('Receita Única em ' + m.length + ' Meses', real(r.unica.total), esc(real(r.unica.contratado) + ' contratado + ' + real(r.unica.projetado) + ' projeção')) +
+      kpi('MRR em ' + r.mrr_fim.mes, real(r.mrr_fim.valor), 'Hoje ' + esc(real(r.mrr_fim.hoje)) + ' · <b>+ ' + esc(real(r.mrr_fim.projetado)) + '</b> projetado') + '</div></div></section>' +
+
+      '<section class="secao"><h3>Negócios em Andamento</h3><p class="dica">Oportunidades abertas. O valor ponderado multiplica cada negócio pela chance da etapa.</p><div class="kpis">' +
+      kpi('Oportunidades Abertas', String(a.abertas), esc(plural(a.com_proposta, 'com proposta enviada', 'com proposta enviada'))) +
+      kpi('MRR em Negociação', real(a.mrr), 'Ponderado: ' + esc(real(a.mrr_pond))) +
+      kpi('Receita Única em Negociação', real(a.unica), 'Ponderado: ' + esc(real(a.unica_pond))) + '</div></section>' +
+
+      '<div class="duas-col"><div class="cartao-p"><h4>Precisa de Atenção</h4>' + (p.atencao.length ? '<ul class="atencao">' + p.atencao.map(function (x) {
+        return '<li data-op="' + x.oportunidade_id + '" tabindex="0"><div class="txt"><strong>' + esc(x.empresa) + '</strong><small>' + esc(x.texto) + '</small></div>' + selo(x) + '</li>';
+      }).join('') + '</ul>' : '<p class="vazio-p">Nada pendente. Todos os negócios estão em dia.</p>') + '</div>' +
+      '<div class="cartao-p"><h4>Por Etapa</h4>' + p.etapas.map(function (x) {
+        return '<div class="etapa-linha"><span class="rot"><b>' + esc(x.nome) + '</b><small>' + esc(plural(x.qtd, 'negócio', 'negócios')) + ' · chance ' + x.chance + '%</small></span><span class="barra" data-w="' + Math.round(x.mrr / maxEtapa * 100) + '"></span>' +
+          '<span class="val">' + esc(real(x.mrr)) + '<small>+ ' + esc(real(x.unica)) + ' única</small></span></div>';
+      }).join('') + '<p class="mini">Barras: MRR em negociação por etapa</p></div></div>' +
+
+      '<section class="secao"><h3>Previsão de Fechamento</h3><p class="dica">Pela data prevista de cada oportunidade. Valores ponderados pela chance da etapa.</p><div class="cartao-p">' +
+      (p.previsao.length ? '<table class="tab"><thead><tr><th>Mês</th><th>Negócios</th><th>MRR</th><th>Única</th></tr></thead><tbody>' + p.previsao.map(function (x) {
+        return '<tr><td>' + esc(x.nome) + '</td><td>' + x.qtd + '</td><td>' + esc(real(x.mrr_pond)) + '</td><td>' + esc(real(x.unica_pond)) + '</td></tr>';
+      }).join('') + '<tr class="total"><td>Total</td><td>' + prevTot[0] + '</td><td>' + esc(real(prevTot[1])) + '</td><td>' + esc(real(prevTot[2])) + '</td></tr></tbody></table>'
+        : '<p class="vazio-p">Nenhuma oportunidade aberta.</p>') + '</div></section>' +
+
+      '<section class="secao"><h3>Desempenho Comercial</h3><p class="dica">Como o funil vem convertendo. Ajuda a calibrar as chances de cada etapa.</p><div class="kpis">' +
+      kpi('Taxa de Conversão', d.conversao == null ? 'Sem Base' : d.conversao + '%', d.conversao == null ? 'Ainda não há proposta enviada' : esc(plural(d.ganhos, 'ganho', 'ganhos') + ' em ' + plural(d.propostas, 'proposta enviada', 'propostas enviadas'))) +
+      kpi('Ciclo de Venda', d.ciclo_dias == null ? 'Sem Base' : plural(d.ciclo_dias, 'dia', 'dias'), d.ciclo_dias == null ? 'Nenhum negócio ganho ainda' : 'Da criação ao Ganho, em média') +
+      kpi('Ticket Médio', d.ticket == null ? 'Sem Base' : real(d.ticket), d.ticket == null ? 'Nenhum cliente recorrente ainda' : 'MRR médio por cliente recorrente') + '</div></section>' +
+      '</div>';
+
+    raiz.querySelectorAll('[data-w]').forEach(function (el) { el.style.width = el.getAttribute('data-w') + '%'; });
+    raiz.querySelectorAll('[data-op]').forEach(function (el) {
+      var ir = function () { location.hash = '#/oportunidade/' + el.getAttribute('data-op'); };
+      el.addEventListener('click', ir);
+      el.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') ir(); });
+    });
+    raiz.querySelectorAll('[data-contrato]').forEach(function (el) {
+      var abrir = function () { abrirContrato(contratos.filter(function (x) { return String(x.id) === el.getAttribute('data-contrato'); })[0], telaPainel); };
+      el.addEventListener('click', abrir);
+      el.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') abrir(); });
+    });
+    $('#novo-contrato', raiz).addEventListener('click', function () { formContrato({}, telaPainel); });
+    desenharGrafico();
+  }
+
+  // gráfico da Projeção de Recebimento: barras empilhadas, total em cima, mês escolhido em destaque e selo no mês atual
+  function desenharGrafico() {
+    var g = $('#proj-grafico'), p = estado.painel;
+    if (!g || !p) return;
+    var M = p.meses, sel = estado.painelMes;
+    var gar = function (x) { return x.mrr + x.fech; };
+    var total = function (x) { return gar(x) + x.pr + x.pn; };
+    var mil = function (v) { return (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil'; };
+    var W = Math.max(280, g.clientWidth - 18), H = W < 500 ? 318 : 338, esq = 52, dir = 6, topo = 30, base = 54;
+    var maior = Math.max.apply(null, M.map(total).concat([1000]));
+    var bruto = maior / 4, mag = Math.pow(10, Math.floor(Math.log10(bruto)));
+    var passo = [1, 2, 2.5, 5, 10].map(function (k) { return k * mag; }).filter(function (v) { return v >= bruto; })[0];
+    var max = passo * Math.ceil(maior * 1.08 / passo);
+    var larg = (W - esq - dir) / M.length, barra = Math.min(64, larg * .62);
+    var y = function (v) { return topo + (H - topo - base) * (1 - v / max); };
+    var s = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Projeção de recebimento mês a mês">' +
+      '<defs><pattern id="listra" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#8fdcc0"/><rect width="3.5" height="8" fill="#1baf7a"/></pattern>' +
+      '<pattern id="listra-c" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#c6eedf"/><rect width="3.5" height="8" fill="#76cfac"/></pattern></defs>';
+    for (var t = 0; t <= max + 1; t += passo) {
+      s += '<line x1="' + esq + '" x2="' + (W - dir) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + (t === 0 ? '#cfd4da' : '#e3e5e8') + '" stroke-width="1"' + (t === 0 ? '' : ' stroke-dasharray="4 4"') + '/>' +
+        '<text class="eixo" x="' + (esq - 10) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + (t === 0 ? '0' : mil(t)) + '</text>';
+    }
+    M.forEach(function (m, i) {
+      var x = esq + i * larg + (larg - barra) / 2, ativo = i === sel;
+      if (ativo) s += '<rect x="' + (esq + i * larg + 3) + '" y="' + (topo - 26) + '" width="' + (larg - 6) + '" height="' + (H - topo - base + 30) + '" rx="10" fill="#f3f5f6"/>';
+      var partes = [[gar(m), ativo ? '#2a78d6' : '#7aa9e8'], [m.pr, ativo ? '#e34948' : '#ee8a89'], [m.pn, ativo ? 'url(#listra)' : 'url(#listra-c)']].filter(function (q) { return q[0] > 0; });
+      var acum = 0;
+      partes.forEach(function (q, k) {
+        var y1 = y(acum + q[0]), h = y(acum) - y1, ultimo = k === partes.length - 1, hh = Math.max(0, h - (k > 0 ? 2 : 0)), rr = ultimo ? Math.min(4, hh) : 0;
+        s += ultimo
+          ? '<path d="M' + x + ' ' + (y1 + hh) + 'V' + (y1 + rr) + 'Q' + x + ' ' + y1 + ' ' + (x + rr) + ' ' + y1 + 'H' + (x + barra - rr) + 'Q' + (x + barra) + ' ' + y1 + ' ' + (x + barra) + ' ' + (y1 + rr) + 'V' + (y1 + hh) + 'Z" fill="' + q[1] + '"/>'
+          : '<rect x="' + x + '" y="' + y1 + '" width="' + barra + '" height="' + hh + '" fill="' + q[1] + '"/>';
+        acum += q[0];
+      });
+      s += '<text class="rot-total' + (ativo ? ' sel' : '') + '" x="' + (x + barra / 2) + '" y="' + (y(total(m)) - 8) + '" text-anchor="middle">' + mil(total(m)) + '</text>' +
+        '<text class="eixo' + (ativo ? ' sel' : '') + '" x="' + (x + barra / 2) + '" y="' + (H - 30) + '" text-anchor="middle">' + m.nome.slice(0, 3) + '</text>' +
+        (i === 0 ? '<rect x="' + (x + barra / 2 - 23) + '" y="' + (H - 21) + '" width="46" height="18" rx="9" fill="#246b60"/><text class="selo-atual" x="' + (x + barra / 2) + '" y="' + (H - 8) + '" text-anchor="middle">Atual</text>' : '') +
+        '<rect class="alvo" data-i="' + i + '" x="' + (esq + i * larg) + '" y="0" width="' + larg + '" height="' + H + '" fill="transparent"><title>' + m.nome + ': ' + real(total(m)) + '</title></rect>';
+    });
+    g.innerHTML = s + '</svg>';
+    g.querySelectorAll('.alvo').forEach(function (el) { el.addEventListener('click', function () { estado.painelMes = +el.getAttribute('data-i'); desenharGrafico(); }); });
+    var x = M[sel];
+    $('#proj-mes-cab').innerHTML = '<b>' + esc(x.nome + (sel === 0 ? ' (Atual)' : '') + ': ' + real(total(x)) + ' a receber') + '</b><small>Toque numa barra para ver outro mês</small>';
+    $('#proj-totais').innerHTML =
+      '<div><small><i class="sw sw1"></i>Garantida</small><strong>' + esc(real(gar(x))) + '</strong><span class="det">' + esc(real(x.mrr) + ' MRR + ' + real(x.fech) + ' fechadas') + '</span></div>' +
+      '<div><small><i class="sw sw2"></i>Recorrente</small><strong>' + esc(real(x.pr)) + '</strong><span class="det">Projetado</span></div>' +
+      '<div><small><i class="sw sw3"></i>Não Recorrente</small><strong>' + esc(real(x.pn)) + '</strong><span class="det">Projetado</span></div>';
+  }
+  var tmGrafico = null;
+  window.addEventListener('resize', function () { clearTimeout(tmGrafico); tmGrafico = setTimeout(desenharGrafico, 150); });
 
   // ---------- navegação ----------
   function rotear() {
@@ -784,16 +1178,22 @@
     }
     var m = h.match(/^oportunidade\/(\d+)$/);
     if (m) {
-      if (!$('#tela').innerHTML) telaFunil();
+      if (!$('#tela').innerHTML) telaPainel();
       return telaOportunidade(m[1]);
     }
     document.querySelectorAll('.op-camada').forEach(function (c) { c.remove(); });
     if (h === 'empresas') return telaEmpresas();
     if (h === 'propostas') return telaPropostas();
-    if (h !== 'funil') { history.replaceState(null, '', '#/funil'); }
-    telaFunil();
+    if (h === 'funil') return telaFunil();
+    if (h !== 'painel') { history.replaceState(null, '', '#/painel'); }
+    telaPainel();
   }
-  window.addEventListener('hashchange', function () { if (!$('#app').hidden) rotear(); });
+  window.addEventListener('hashchange', function () {
+    // link do e-mail aberto na mesma aba do CRM: a página não recarrega, então a troca do # leva à criação da senha
+    var r = location.hash.match(/^#\/redefinir\/([a-f0-9]{64})$/);
+    if (r) { tokenRedefinir = r[1]; $('#app').hidden = true; $('#entrada').hidden = false; telaEntrada('redefinir'); return; }
+    if (!$('#app').hidden) rotear();
+  });
 
   function iniciar() {
     api('GET', '/eu').then(function (eu) {
@@ -812,7 +1212,8 @@
       rotear();
     }).catch(function (e) { if (e.http !== 401) aviso(e.message, true); mostrarEntrada(); });
   }
-  iniciar();
+  // aberto pelo link do e-mail: mostra direto a criação da senha nova, mesmo com uma sessão aberta
+  if (tokenRedefinir) { $('#entrada').hidden = false; telaEntrada('redefinir'); } else iniciar();
   // app instalável no celular: o service worker guarda só a casca da tela (ver sw.js)
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('/crm/sw.js', { scope: '/crm' }).catch(function () { /* sem app instalável, o CRM segue no navegador */ });
 })();

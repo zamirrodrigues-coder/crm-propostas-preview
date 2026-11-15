@@ -477,6 +477,11 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
 .entrada-form .campo input::placeholder { color: #8a93a0; }
 .entrada-form .btn-bloco { height: 48px; margin-top: 8px; border-radius: 8px; background: #12233a; border-color: #12233a; font-size: 16.5px; }
 .entrada-form .btn-bloco:hover { background: #1b3150; }
+.entrada-form .campo:has(+ .esqueci) { margin-bottom: 8px; }
+.esqueci { display: block; width: max-content; margin: 0 0 18px auto; border: 0; background: none; padding: 4px 0; color: #17795e; font-size: 14.5px; font-weight: 500; }
+.voltar { display: block; margin: 18px auto 0; border: 0; background: none; padding: 6px 4px; color: #17795e; font-size: 14.5px; font-weight: 500; }
+.esqueci:hover, .voltar:hover { text-decoration: underline; }
+.entrada-form .recado { margin: -4px 0 18px; padding: 12px 14px; border-radius: 8px; background: var(--ok-fundo); color: var(--ok); font-size: 14px; line-height: 1.45; }
 @media (max-width: 760px) {
   .entrada { padding: 0; place-items: stretch; }
   .entrada-cartao { grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 100vh; border-radius: 0; box-shadow: none; background: #0e1d30; }
@@ -596,7 +601,14 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
 /* ---------- Celular: versão completa e app instalado (15/11/2026) ----------
    Tudo aqui vale só até 767 px; o computador continua como estava. Alvo de toque com pelo menos 44 px,
    campos com letra de 16 px (o iPhone não dá zoom) e respiro para a barra de gestos do aparelho. */
-.funil-abas, .so-celular { display: none; }
+.funil-acoes, .so-celular, .seta-etapa { display: none; }
+/* cor de cada etapa (no celular: faixa à esquerda e contador) */
+.coluna[data-etapa="em_contato"] { --cor-etapa: #2a78d6; --cor-etapa-fundo: #e6effb; }
+.coluna[data-etapa="proposta_enviada"] { --cor-etapa: #6250d6; --cor-etapa-fundo: #ecebfb; }
+.coluna[data-etapa="futuro"] { --cor-etapa: #b26b00; --cor-etapa-fundo: #fbf0dc; }
+.coluna[data-etapa="frio"] { --cor-etapa: #2f6f8f; --cor-etapa-fundo: #e2eef4; }
+.coluna[data-etapa="ganho"] { --cor-etapa: #167154; --cor-etapa-fundo: #e5f4ed; }
+.coluna[data-etapa="perdido"] { --cor-etapa: #b42318; --cor-etapa-fundo: #fdf0ee; }
 @media (max-width: 767px) {
   .so-celular { display: inline-flex; }
   /* menu de baixo e cabeçalho: respeitam o recorte e a barra de gestos */
@@ -623,18 +635,20 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
   .limpar { min-height: 44px; }
   .op-link { display: inline-block; padding: 10px 0; font-size: 14.5px; }
   .aviso-flutuante { bottom: calc(76px + env(safe-area-inset-bottom)); font-size: 14px; padding: 12px 16px; }
-  /* Funil: abas roláveis por etapa, uma etapa por vez */
-  .barra-filtros { margin-bottom: 12px; }
-  .funil-abas { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -14px 14px; padding: 0 14px 2px; scroll-padding: 0 14px; }
-  .funil-abas::-webkit-scrollbar { display: none; }
-  .funil-abas button { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 14px; border: 1px solid var(--crm-border); border-radius: 21px; background: var(--crm-surface); font-size: 14px; font-weight: 500; color: var(--texto-2); white-space: nowrap; }
-  .funil-abas button .qtd { min-width: 22px; padding: 0 7px; border-radius: 11px; background: var(--crm-selected); font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; color: var(--crm-text); }
-  .funil-abas button[aria-selected="true"] { background: var(--marca); border-color: var(--marca); color: #fff; font-weight: 600; }
-  .funil-abas button[aria-selected="true"] .qtd { background: rgba(255, 255, 255, .18); color: #fff; }
-  .quadro { min-height: 0; padding-bottom: 0; }
-  .quadro .coluna:not(.na-aba) { display: none; }
+  /* Funil: etapas uma embaixo da outra, abertas; cada uma recolhe; Expandir Todos e Recolher Todos no topo */
+  .barra-filtros { margin-bottom: 10px; }
+  .funil-acoes { display: flex; gap: 8px; margin-bottom: 14px; }
+  .funil-acoes .btn { flex: 1; }
+  .quadro { min-height: 0; padding-bottom: 0; gap: 14px; }
   .quadro .coluna { background: transparent; }
-  .coluna-cab { display: none; }
+  .coluna-cab { min-height: 52px; padding: 0 14px; margin-bottom: 10px; background: var(--crm-surface); border: 1px solid var(--crm-border); border-left: 5px solid var(--cor-etapa); border-radius: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .coluna-cab h4 { font-size: 15.5px; font-weight: 700; color: var(--crm-text); }
+  .coluna .coluna-cab .qtd { min-width: 26px; padding: 2px 9px; border-radius: 13px; text-align: center; font-size: 13.5px; font-weight: 700; background: var(--cor-etapa-fundo); color: var(--cor-etapa); }
+  .seta-etapa { display: block; margin-left: auto; width: 20px; height: 20px; color: var(--crm-text-muted); transition: transform .15s ease; }
+  .coluna.recolhida .seta-etapa { transform: rotate(-90deg); }
+  .coluna.recolhida .coluna-cab { margin-bottom: 0; }
+  .coluna.recolhida .coluna-cartoes { display: none; }
+  .coluna-cab:focus-visible { outline: 2px solid var(--crm-accent); outline-offset: 2px; }
   .coluna-cartoes { padding: 0; gap: 10px; }
   .card { padding: 14px; border-radius: 10px; }
   .card .nome-c { font-size: 15px; }
@@ -642,7 +656,8 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
   .card .rodape-c { font-size: 12px; }
   .mover-mobile { margin-top: 12px; }
   .mover-mobile select { min-height: 44px; padding: 8px 10px; }
-  .vazio-coluna { background: var(--crm-surface); border: 1px dashed var(--borda-forte); border-radius: 10px; padding: 28px 12px; }
+  .vazio-coluna { background: transparent; border: 1px dashed var(--borda-forte); border-radius: 10px; padding: 12px; font-size: 13px; }
+  .coluna .vazio-coluna::before { display: none; }
   /* Propostas e Empresas: a tabela vira cartões */
   .tabela-cartao { background: transparent; border: 0; border-radius: 0; overflow: visible; }
   .tabela-cartao .tabela, .tabela-cartao .tabela tbody { display: block; }
@@ -692,3 +707,121 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
   .modal-acoes .btn { flex: 1; min-height: 48px; font-size: 15px; }
 }
 @keyframes sobe { from { transform: translateY(40px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+/* ---------- Painel de receita (Fase 1, 15/11/2026; prévia aprovada pelo Zamir) ----------
+   Cores das séries: paleta validada para daltonismo (azul, vermelho e verde listrado). Larguras das barras vêm do JS (CSSOM),
+   porque a política de segurança do CRM não aceita estilo dentro do HTML. */
+.painel { --tinta: #17191c; --tinta-2: #52514e; display: flex; flex-direction: column; gap: 22px; max-width: 1180px; }
+.painel .secao h3 { margin: 0 0 4px; font-size: 17px; font-weight: 600; }
+.painel .secao > p.dica { margin: 0 0 14px; font-size: 13px; color: var(--crm-text-muted); }
+.painel .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.painel .kpis-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.painel .kpi { background: var(--crm-surface); border: 1px solid var(--crm-border); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.painel .kpi small { display: block; font-size: 12.5px; font-weight: 600; color: var(--tinta-2); }
+.painel .kpi strong { display: block; font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin: 6px 0 2px; font-variant-numeric: tabular-nums; color: var(--tinta); }
+.painel .kpi span { display: block; font-size: 12.5px; color: var(--crm-text-muted); }
+.painel .kpi span b { color: var(--crm-success); font-weight: 600; }
+.painel .cartao-p { background: var(--crm-surface); border: 1px solid var(--crm-border); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+.painel .cartao-p h4 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+.painel .cartao-cab-p { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.painel .cartao-cab-p h4 { margin: 0; }
+.painel .duas-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.painel .vazio-p { font-size: 13.5px; color: var(--crm-text-muted); padding: 6px 0; }
+.destaque { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr); gap: 12px; }
+.destaque-num { background: linear-gradient(160deg, #13263e 0%, #0e1d30 100%); color: #fff; border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.destaque-num small { font-size: 13px; font-weight: 600; color: #c6d0db; }
+.destaque-num strong { font-family: "Manrope", var(--fonte); font-size: 40px; font-weight: 800; letter-spacing: -.02em; margin: 6px 0; font-variant-numeric: tabular-nums; }
+.destaque-num span { font-size: 13px; color: #c6d0db; line-height: 1.45; }
+.destaque-2 { background: linear-gradient(160deg, #1d5a51 0%, #12423b 100%); }
+/* Projeção de Recebimento (topo) */
+.proj { background: var(--crm-surface); border: 1px solid var(--crm-border); border-radius: 16px; overflow: hidden; }
+.proj-cab { padding: 18px 20px 4px; }
+.proj-cab h3 { margin: 0; font-size: 18px; font-weight: 600; }
+.proj-cab p { margin: 3px 0 0; font-size: 13px; color: var(--crm-text-muted); }
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: #52514e; }
+.legenda span { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+.sw1 { background: #2a78d6; }
+.sw2 { background: #e34948; }
+.sw3 { background: repeating-linear-gradient(45deg, #1baf7a 0 3px, #8fdcc0 3px 6px); }
+.proj-leg { padding: 10px 20px 12px; margin: 0; border-bottom: 1px solid var(--crm-border); font-size: 14px; }
+.grafico { position: relative; }
+.grafico svg { display: block; overflow: visible; }
+.proj .grafico { padding: 14px 12px 4px 6px; }
+.grafico .eixo { font-size: 11.5px; fill: #8a93a0; font-family: var(--fonte); }
+.grafico .eixo.sel { fill: #17191c; font-weight: 700; }
+.grafico .rot-total { font-size: 13px; fill: #52514e; font-weight: 500; font-family: var(--fonte); }
+.grafico .rot-total.sel { fill: #17191c; font-weight: 700; font-size: 14px; }
+.grafico .selo-atual { font-size: 11px; font-weight: 700; fill: #fff; font-family: var(--fonte); }
+.grafico .alvo { cursor: pointer; }
+.proj-mes-cab { border-top: 1px solid var(--crm-border); padding: 12px 20px 0; text-align: center; font-size: 14px; color: #52514e; }
+.proj-mes-cab b { color: #17191c; }
+.proj-mes-cab small { display: block; font-size: 12px; color: var(--crm-text-muted); margin-top: 2px; }
+.proj-totais { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; padding: 12px 8px 16px; }
+.proj-totais > div { min-width: 0; padding: 0 4px; }
+.proj-totais > div + div { border-left: 1px solid var(--crm-border); }
+.proj-totais small { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #52514e; }
+.proj-totais small .sw { width: 10px; height: 10px; border-radius: 2px; }
+.proj-totais strong { display: block; font-size: 18px; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.proj-totais .det { display: block; font-size: 11.5px; color: var(--crm-text-muted); margin-top: 2px; }
+/* listas do Painel */
+.etapa-linha { display: grid; grid-template-columns: 130px 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--crm-border); font-size: 13.5px; }
+.etapa-linha .barra { height: 10px; border-radius: 0 4px 4px 0; background: #2a78d6; min-width: 4px; width: 4px; }
+.etapa-linha .val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.etapa-linha .val small, .etapa-linha .rot small { display: block; font-size: 11.5px; color: var(--crm-text-muted); }
+.etapa-linha .rot b { font-weight: 600; }
+.painel .mini { margin-top: 10px; font-size: 12.5px; color: var(--crm-text-muted); }
+.atencao { list-style: none; margin: 0; padding: 0; }
+.atencao li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--crm-border); font-size: 13.5px; cursor: pointer; }
+.atencao li:last-child { border-bottom: 0; }
+.atencao li:hover strong { text-decoration: underline; }
+.atencao .txt { flex: 1; min-width: 0; }
+.atencao .txt strong { display: block; font-weight: 600; }
+.atencao .txt small { display: block; color: var(--crm-text-muted); font-size: 12px; }
+.selo { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.selo .icone { width: 13px; height: 13px; stroke-width: 2; }
+.selo-alerta { background: var(--alerta-fundo); color: var(--alerta); }
+.selo-perigo { background: var(--perigo-fundo); color: var(--perigo); }
+.tab { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tab th { text-align: right; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--texto-3); font-weight: 600; padding: 8px; border-bottom: 1px solid var(--crm-border); white-space: nowrap; }
+.tab th:first-child, .tab td:first-child { text-align: left; }
+.tab td { text-align: right; padding: 9px 8px; border-bottom: 1px solid var(--crm-border); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tab tr:last-child td { border-bottom: 0; }
+.tab .total td { font-weight: 700; }
+.contratos-lista { display: flex; flex-direction: column; }
+.contrato-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--crm-border); cursor: pointer; font-size: 13.5px; }
+.contrato-item:last-child { border-bottom: 0; }
+.contrato-item:hover strong { text-decoration: underline; }
+.contrato-item .txt { flex: 1; min-width: 0; }
+.contrato-item .txt strong { display: block; font-weight: 600; }
+.contrato-item .txt small { display: block; font-size: 12px; color: var(--crm-text-muted); }
+.contrato-item .val { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.contrato-item .val small { display: block; font-weight: 400; font-size: 11.5px; color: var(--crm-text-muted); }
+/* formulários de valores, contrato e venda */
+.tres { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.campo-total input { font-weight: 700; background: var(--superficie-2); }
+.escolha-tipo { display: flex; gap: 8px; margin-bottom: 14px; }
+.escolha-tipo label { flex: 1; display: flex; align-items: center; gap: 8px; border: 1px solid var(--borda-forte); border-radius: var(--raio-p); padding: 10px 12px; font-size: 14px; cursor: pointer; }
+.escolha-tipo label:has(input:checked) { border-color: var(--crm-accent); background: #f1f8f5; font-weight: 600; }
+.btn-texto-perigo { border: 0; background: none; color: var(--perigo); font-weight: 600; font-size: 13.5px; padding: 8px 0; }
+.op-valores .op-linha .val { font-variant-numeric: tabular-nums; }
+.op-card-btns .btn-p { flex: 1 1 auto; }
+@media (max-width: 767px) {
+  .painel .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .painel .kpis-3 .kpi:first-child { grid-column: 1 / -1; }
+  .painel .kpi { padding: 13px 14px; }
+  .painel .kpi strong { font-size: 21px; }
+  .painel .duas-col { grid-template-columns: 1fr; }
+  .painel .cartao-p { padding: 16px; }
+  .destaque { grid-template-columns: 1fr; }
+  .destaque-num strong { font-size: 32px; }
+  .proj-cab, .proj-leg { padding-left: 16px; padding-right: 16px; }
+  .proj-totais strong { font-size: 16px; }
+  .proj-totais small { font-size: 12px; }
+  .grafico .rot-total { font-size: 11.5px; }
+  .grafico .rot-total.sel { font-size: 12.5px; }
+  .etapa-linha { grid-template-columns: 104px 1fr auto; }
+  .tab { font-size: 13px; }
+  .tab th, .tab td { padding: 8px 5px; }
+  .tres { grid-template-columns: 1fr 1fr; }
+}
