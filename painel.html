@@ -70,12 +70,31 @@
 .dica-g .soma { border-top: 1px solid var(--crm-border); margin-top: 4px; padding-top: 6px; }
 .ver-tabela { margin-top: 12px; overflow-x: auto; }
 .ver-tabela summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--crm-accent); padding: 8px 0; }
+.destaque { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr); gap: 12px; margin-bottom: 12px; }
+.destaque-num { background: linear-gradient(160deg, #13263e 0%, #0e1d30 100%); color: #fff; border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; justify-content: center; }
+.destaque-num small { font-size: 13px; font-weight: 600; color: #c6d0db; }
+.destaque-num strong { font-family: "Manrope", var(--fonte); font-size: 40px; font-weight: 800; letter-spacing: -.02em; margin: 6px 0; font-variant-numeric: tabular-nums; }
+.destaque-num span { font-size: 13px; color: #c6d0db; line-height: 1.45; }
+.destaque-2 { background: linear-gradient(160deg, #1d5a51 0%, #12423b 100%); }
+.kpis-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mes-linha { display: grid; grid-template-columns: 92px 1fr 104px; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--crm-border); font-size: 13.5px; }
+.mes-linha:last-child { border-bottom: 0; }
+.mes-linha .trilho { display: flex; gap: 2px; height: 12px; }
+.mes-linha .trilho i { display: block; height: 100%; }
+.mes-linha .trilho i:last-child { border-radius: 0 4px 4px 0; }
+.mes-linha .v { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.mes-linha .v small { display: block; font-weight: 400; font-size: 11.5px; color: var(--crm-text-muted); }
 .aviso-previa { background: #fff8eb; border: 1px solid #f1dcae; color: #8a5d14; border-radius: 8px; padding: 10px 14px; font-size: 13px; }
 @media (max-width: 767px) {
   .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
   .kpi { padding: 13px 14px; }
   .kpi strong { font-size: 21px; }
   .duas-col { grid-template-columns: 1fr; }
+  .destaque { grid-template-columns: 1fr; }
+  .destaque-num strong { font-size: 32px; }
+  .kpis-3 { grid-template-columns: 1fr 1fr; }
+  .kpis-3 .kpi:first-child { grid-column: 1 / -1; }
+  .mes-linha { grid-template-columns: 74px 1fr 92px; gap: 8px; }
   .cartao-p { padding: 16px; }
   .etapa-linha { grid-template-columns: 104px 1fr auto; }
   .tab { font-size: 13px; }
@@ -105,13 +124,40 @@
         <p class="aviso-previa">Prévia com dados fictícios. Os números fecham entre si para você conferir o racional.</p>
 
         <section class="secao">
-          <h3>Faturamento Contratado</h3>
-          <p class="dica">O que já está fechado. MRR é só o que renova sem data para acabar.</p>
-          <div class="kpis">
-            <div class="kpi"><small>MRR Contratado</small><strong>R$ 7.470</strong><span><b>+ R$ 3.980</b> novos em novembro</span></div>
-            <div class="kpi"><small>Receita Única a Receber</small><strong>R$ 14.990</strong><span>Implantações e projetos</span></div>
-            <div class="kpi"><small>Clientes Recorrentes</small><strong>3</strong><span>Ticket médio de R$ 2.490</span></div>
-            <div class="kpi"><small>Faturamento de Novembro</small><strong>R$ 10.062</strong><span>R$ 7.072 recorrente e R$ 2.990 única</span></div>
+          <h3>Quanto Tenho para Faturar</h3>
+          <p class="dica">Só o que já está contratado: mensalidades dos clientes e receitas únicas a receber.</p>
+          <div class="destaque">
+            <div class="destaque-num"><small>A Faturar nos Próximos 6 Meses</small><strong>R$ 58.616</strong><span>De novembro a abril · R$ 43.626 recorrente e R$ 14.990 única</span></div>
+            <div class="kpis kpis-3">
+              <div class="kpi"><small>A Faturar em Novembro</small><strong>R$ 10.062</strong><span>R$ 7.072 recorrente e R$ 2.990 única</span></div>
+              <div class="kpi"><small>Clientes Ativos</small><strong>4</strong><span>3 recorrentes e 1 projeto</span></div>
+              <div class="kpi"><small>MRR Contratado</small><strong>R$ 7.470</strong><span><b>+ R$ 3.980</b> novos em novembro</span></div>
+            </div>
+          </div>
+          <div class="cartao-p">
+            <h4>A Faturar Mês a Mês</h4>
+            <div id="meses-faturar"></div>
+          </div>
+        </section>
+
+        <section class="secao">
+          <h3>Quanto Terei de Receita</h3>
+          <p class="dica">O contratado somado à projeção do funil, ponderada pela chance de cada etapa.</p>
+          <div class="destaque">
+            <div class="destaque-num destaque-2"><small>Receita nos Próximos 6 Meses</small><strong>R$ 75.416</strong><span>R$ 58.616 contratado + R$ 16.800 projeção do funil</span></div>
+            <div class="kpis kpis-3">
+              <div class="kpi"><small>Recorrente em 6 Meses</small><strong>R$ 48.933</strong><span>R$ 43.626 contratado + R$ 5.307 projeção</span></div>
+              <div class="kpi"><small>Receita Única em 6 Meses</small><strong>R$ 26.483</strong><span>R$ 14.990 contratado + R$ 11.493 projeção</span></div>
+              <div class="kpi"><small>MRR em Abril</small><strong>R$ 8.993</strong><span>Hoje R$ 7.470 · <b>+ R$ 1.523</b> projetado</span></div>
+            </div>
+          </div>
+          <div class="cartao-p">
+            <div class="legenda" aria-hidden="true"><span><i class="l1"></i>Recorrente</span><span><i class="l2"></i>Receita Única</span><span><i class="l3"></i>Funil Ponderado</span></div>
+            <div class="grafico" id="grafico"></div>
+            <details class="ver-tabela">
+              <summary>Ver em Tabela</summary>
+              <table class="tab" id="tabela-grafico"></table>
+            </details>
           </div>
         </section>
 
@@ -122,19 +168,9 @@
             <div class="kpi"><small>Oportunidades Abertas</small><strong>6</strong><span>2 com proposta enviada</span></div>
             <div class="kpi"><small>MRR em Negociação</small><strong>R$ 9.050</strong><span>Ponderado: R$ 1.588</span></div>
             <div class="kpi"><small>Receita Única em Negociação</small><strong>R$ 47.950</strong><span>Ponderado: R$ 16.393</span></div>
-            <div class="kpi"><small>Taxa de Conversão</small><strong>40%</strong><span>4 ganhos em 10 propostas · ciclo de 24 dias</span></div>
           </div>
         </section>
-
         <div class="duas-col">
-          <div class="cartao-p">
-            <h4>Por Etapa</h4>
-            <div class="etapa-linha"><span class="rot"><b>Em Contato</b><small>2 negócios · chance 10%</small></span><span class="barra" style="width:44%"></span><span class="val">R$ 3.980<small>+ R$ 4.980 única</small></span></div>
-            <div class="etapa-linha"><span class="rot"><b>Proposta Enviada</b><small>2 negócios · chance 40%</small></span><span class="barra" style="width:28%"></span><span class="val">R$ 2.490<small>+ R$ 38.990 única</small></span></div>
-            <div class="etapa-linha"><span class="rot"><b>Futuro</b><small>1 negócio · chance 10%</small></span><span class="barra" style="width:14%"></span><span class="val">R$ 1.290<small>+ R$ 1.990 única</small></span></div>
-            <div class="etapa-linha"><span class="rot"><b>Frio</b><small>1 negócio · chance 5%</small></span><span class="barra" style="width:14%"></span><span class="val">R$ 1.290<small>+ R$ 1.990 única</small></span></div>
-            <div class="mini"><span>Barras: MRR em negociação por etapa</span></div>
-          </div>
           <div class="cartao-p">
             <h4>Precisa de Atenção</h4>
             <ul class="atencao">
@@ -144,6 +180,14 @@
               <li><div class="txt"><strong>Lima &amp; Souza Advogados</strong><small>Em Contato há 19 dias</small></div><span class="selo selo-alerta"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Parado</span></li>
               <li><div class="txt"><strong>Padaria Trigo Bom</strong><small>Sem data prevista de fechamento</small></div><span class="selo selo-alerta"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Sem Data</span></li>
             </ul>
+          </div>
+          <div class="cartao-p">
+            <h4>Por Etapa</h4>
+            <div class="etapa-linha"><span class="rot"><b>Em Contato</b><small>2 negócios · chance 10%</small></span><span class="barra" style="width:44%"></span><span class="val">R$ 3.980<small>+ R$ 4.980 única</small></span></div>
+            <div class="etapa-linha"><span class="rot"><b>Proposta Enviada</b><small>2 negócios · chance 40%</small></span><span class="barra" style="width:28%"></span><span class="val">R$ 2.490<small>+ R$ 38.990 única</small></span></div>
+            <div class="etapa-linha"><span class="rot"><b>Futuro</b><small>1 negócio · chance 10%</small></span><span class="barra" style="width:14%"></span><span class="val">R$ 1.290<small>+ R$ 1.990 única</small></span></div>
+            <div class="etapa-linha"><span class="rot"><b>Frio</b><small>1 negócio · chance 5%</small></span><span class="barra" style="width:14%"></span><span class="val">R$ 1.290<small>+ R$ 1.990 única</small></span></div>
+            <div class="mini"><span>Barras: MRR em negociação por etapa</span></div>
           </div>
         </div>
 
@@ -165,15 +209,12 @@
         </section>
 
         <section class="secao">
-          <h3>Faturamento Projetado</h3>
-          <p class="dica">O que deve entrar no caixa mês a mês. O desconto temporário aparece aqui (Casa Forte paga R$ 3.582 até janeiro), mas não muda o MRR.</p>
-          <div class="cartao-p">
-            <div class="legenda" aria-hidden="true"><span><i class="l1"></i>Recorrente</span><span><i class="l2"></i>Receita Única</span><span><i class="l3"></i>Funil Ponderado</span></div>
-            <div class="grafico" id="grafico"></div>
-            <details class="ver-tabela">
-              <summary>Ver em Tabela</summary>
-              <table class="tab" id="tabela-grafico"></table>
-            </details>
+          <h3>Desempenho Comercial</h3>
+          <p class="dica">Como o funil vem convertendo. Ajuda a calibrar as chances de cada etapa.</p>
+          <div class="kpis">
+            <div class="kpi"><small>Taxa de Conversão</small><strong>40%</strong><span>4 ganhos em 10 propostas enviadas</span></div>
+            <div class="kpi"><small>Ciclo de Venda</small><strong>24 dias</strong><span>Da criação ao Ganho, em média</span></div>
+            <div class="kpi"><small>Ticket Médio</small><strong>R$ 2.490</strong><span>MRR médio por cliente recorrente</span></div>
           </div>
         </section>
       </div>
@@ -201,6 +242,16 @@ var SERIES = [['rec', 'Recorrente', 'var(--serie-1)'], ['uni', 'Receita Única',
 var COR_DICA = { rec: '#2a78d6', uni: '#eb6834', fun: '#1baf7a' };
 var real = function (v) { return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); };
 
+(function () {
+  var maxC = Math.max.apply(null, MESES.map(function (m) { return m.rec + m.uni; }));
+  document.getElementById('meses-faturar').innerHTML = '<div class="legenda" aria-hidden="true"><span><i class="l1"></i>Recorrente</span><span><i class="l2"></i>Receita Única</span></div>' +
+    MESES.map(function (m) {
+      var tot = m.rec + m.uni;
+      return '<div class="mes-linha" title="' + m.nome + ': ' + real(m.rec) + ' recorrente e ' + real(m.uni) + ' única"><span>' + m.nome + '</span><span class="trilho">' +
+        '<i style="width:' + (m.rec / maxC * 100) + '%;background:var(--serie-1)"></i>' + (m.uni ? '<i style="width:' + (m.uni / maxC * 100) + '%;background:var(--serie-2)"></i>' : '') +
+        '</span><span class="v">' + real(tot) + (m.uni ? '<small>' + real(m.uni) + ' única</small>' : '<small>só recorrente</small>') + '</span></div>';
+    }).join('');
+})();
 (function () {
   var g = document.getElementById('grafico');
   var dica = document.createElement('div');
