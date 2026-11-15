@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel | CRM de Propostas (Prévia)</title>
+<link rel="icon" type="image/png" href="icone-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap">
+<link rel="stylesheet" href="app.css">
+<style>
+/* Prévia do Painel (15/11/2026). Dados FICTÍCIOS. Cores das séries: paleta validada (azul, laranja, verde-água). */
+.painel { --serie-1: #2a78d6; --serie-2: #eb6834; --serie-3: #1baf7a; --tinta: #17191c; --tinta-2: #52514e; --tinta-3: #8a93a0; --grade: #eceef1; display: flex; flex-direction: column; gap: 22px; max-width: 1180px; }
+.secao h3 { margin: 0 0 4px; font-size: 17px; font-weight: 600; }
+.secao > p.dica { margin: 0 0 14px; font-size: 13px; color: var(--crm-text-muted); }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.kpi { background: var(--crm-surface); border: 1px solid var(--crm-border); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+.kpi small { display: block; font-size: 12.5px; font-weight: 600; color: var(--tinta-2); }
+.kpi strong { display: block; font-size: 26px; font-weight: 700; letter-spacing: -.01em; margin: 6px 0 2px; font-variant-numeric: tabular-nums; color: var(--tinta); }
+.kpi span { display: block; font-size: 12.5px; color: var(--crm-text-muted); }
+.kpi span b { color: var(--crm-success); font-weight: 600; }
+.cartao-p { background: var(--crm-surface); border: 1px solid var(--crm-border); border-radius: 10px; padding: 18px 20px; min-width: 0; }
+.cartao-p h4 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+.duas-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+/* etapas: barras finas por etapa */
+.etapa-linha { display: grid; grid-template-columns: 130px 1fr auto; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--crm-border); font-size: 13.5px; }
+.etapa-linha:last-child { border-bottom: 0; }
+.etapa-linha .barra { height: 10px; border-radius: 0 4px 4px 0; background: var(--serie-1); min-width: 4px; }
+.etapa-linha .val { text-align: right; font-variant-numeric: tabular-nums; color: var(--tinta); white-space: nowrap; }
+.etapa-linha .val small { display: block; font-size: 11.5px; color: var(--crm-text-muted); }
+.etapa-linha .rot b { font-weight: 600; }
+.etapa-linha .rot small { display: block; font-size: 11.5px; color: var(--crm-text-muted); }
+/* listas de atenção */
+.atencao { list-style: none; margin: 0; padding: 0; }
+.atencao li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--crm-border); font-size: 13.5px; }
+.atencao li:last-child { border-bottom: 0; }
+.atencao .txt { flex: 1; min-width: 0; }
+.atencao .txt strong { display: block; font-weight: 600; }
+.atencao .txt small { display: block; color: var(--crm-text-muted); font-size: 12px; }
+.selo { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.selo svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.selo-alerta { background: var(--alerta-fundo); color: var(--alerta); }
+.selo-perigo { background: var(--perigo-fundo); color: var(--perigo); }
+/* tabela de previsão e tabela do gráfico */
+.tab { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tab th { text-align: right; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--texto-3); font-weight: 600; padding: 8px 8px; border-bottom: 1px solid var(--crm-border); white-space: nowrap; }
+.tab th:first-child, .tab td:first-child { text-align: left; }
+.tab td { text-align: right; padding: 9px 8px; border-bottom: 1px solid var(--crm-border); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tab tr:last-child td { border-bottom: 0; }
+.tab .total td { font-weight: 700; }
+.mini { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--crm-border); font-size: 13px; color: var(--tinta-2); }
+.mini b { color: var(--tinta); font-variant-numeric: tabular-nums; }
+/* gráfico */
+.legenda { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0 0 10px; font-size: 13px; color: var(--tinta-2); }
+.legenda span { display: inline-flex; align-items: center; gap: 7px; }
+.legenda i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.legenda i.l1 { background: var(--serie-1); }
+.legenda i.l2 { background: var(--serie-2); }
+.legenda i.l3 { background: repeating-linear-gradient(45deg, var(--serie-3) 0 2px, #d8f1e8 2px 5px); border: 1px solid var(--serie-3); }
+.grafico { position: relative; }
+.grafico svg { display: block; width: 100%; height: auto; overflow: visible; }
+.grafico .eixo { font-size: 11.5px; fill: var(--tinta-3); font-family: var(--fonte); }
+.grafico .rot-total { font-size: 12px; fill: var(--tinta); font-weight: 600; font-family: var(--fonte); }
+.dica-g { position: absolute; pointer-events: none; background: #fff; border: 1px solid var(--crm-border); border-radius: 8px; box-shadow: 0 8px 24px rgba(16, 24, 40, .14); padding: 10px 12px; font-size: 12.5px; min-width: 190px; z-index: 5; }
+.dica-g strong { display: block; margin-bottom: 6px; font-size: 13px; }
+.dica-g div { display: flex; align-items: center; gap: 7px; justify-content: space-between; padding: 2px 0; color: var(--tinta-2); }
+.dica-g div span { display: inline-flex; align-items: center; gap: 7px; }
+.dica-g div b { color: var(--tinta); font-variant-numeric: tabular-nums; }
+.dica-g i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.dica-g .soma { border-top: 1px solid var(--crm-border); margin-top: 4px; padding-top: 6px; }
+.ver-tabela { margin-top: 12px; overflow-x: auto; }
+.ver-tabela summary { cursor: pointer; font-size: 13.5px; font-weight: 600; color: var(--crm-accent); padding: 8px 0; }
+.aviso-previa { background: #fff8eb; border: 1px solid #f1dcae; color: #8a5d14; border-radius: 8px; padding: 10px 14px; font-size: 13px; }
+@media (max-width: 767px) {
+  .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi { padding: 13px 14px; }
+  .kpi strong { font-size: 21px; }
+  .duas-col { grid-template-columns: 1fr; }
+  .cartao-p { padding: 16px; }
+  .etapa-linha { grid-template-columns: 104px 1fr auto; }
+  .tab { font-size: 13px; }
+  .tab th, .tab td { padding: 8px 5px; }
+}
+</style>
+</head>
+<body>
+<div id="app" class="app">
+  <aside class="lateral">
+    <div class="lat-topo"><div class="escritorio"><span class="esc-sigla">ZR</span><span class="esc-txt rot"><strong>Zamir Rodrigues</strong><small>CRM de Propostas</small></span></div></div>
+    <nav class="nav" aria-label="Menu principal">
+      <button type="button" class="ativo" aria-current="page"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="rot">Painel</span></button>
+      <button type="button"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span class="rot">Funil</span></button>
+      <button type="button"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg><span class="rot">Propostas</span></button>
+      <button type="button"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V6l7-3v17M11 9h9v11M7 8h.01M7 12h.01M7 16h.01M15 13h2M15 17h2"/><path d="M2.5 20h19"/></svg><span class="rot">Empresas</span></button>
+    </nav>
+  </aside>
+  <div class="principal">
+    <header class="topo">
+      <div class="topo-titulo"><span class="topo-ic"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><div><h2>Painel</h2><p class="topo-desc">Negócios em andamento, previsão de fechamento e faturamento.</p></div></div>
+      <div class="topo-acoes"></div>
+      <div class="usuario"><button type="button"><span class="avatar">ZR</span></button></div>
+    </header>
+    <main class="tela">
+      <div class="painel">
+        <p class="aviso-previa">Prévia com dados fictícios. Os números fecham entre si para você conferir o racional.</p>
+
+        <section class="secao">
+          <h3>Faturamento Contratado</h3>
+          <p class="dica">O que já está fechado. MRR é só o que renova sem data para acabar.</p>
+          <div class="kpis">
+            <div class="kpi"><small>MRR Contratado</small><strong>R$ 7.470</strong><span><b>+ R$ 3.980</b> novos em novembro</span></div>
+            <div class="kpi"><small>Receita Única a Receber</small><strong>R$ 14.990</strong><span>Implantações e projetos</span></div>
+            <div class="kpi"><small>Clientes Recorrentes</small><strong>3</strong><span>Ticket médio de R$ 2.490</span></div>
+            <div class="kpi"><small>Faturamento de Novembro</small><strong>R$ 10.062</strong><span>R$ 7.072 recorrente e R$ 2.990 única</span></div>
+          </div>
+        </section>
+
+        <section class="secao">
+          <h3>Negócios em Andamento</h3>
+          <p class="dica">Oportunidades abertas. O valor ponderado multiplica cada negócio pela chance da etapa.</p>
+          <div class="kpis">
+            <div class="kpi"><small>Oportunidades Abertas</small><strong>6</strong><span>2 com proposta enviada</span></div>
+            <div class="kpi"><small>MRR em Negociação</small><strong>R$ 9.050</strong><span>Ponderado: R$ 1.588</span></div>
+            <div class="kpi"><small>Receita Única em Negociação</small><strong>R$ 47.950</strong><span>Ponderado: R$ 16.393</span></div>
+            <div class="kpi"><small>Taxa de Conversão</small><strong>40%</strong><span>4 ganhos em 10 propostas · ciclo de 24 dias</span></div>
+          </div>
+        </section>
+
+        <div class="duas-col">
+          <div class="cartao-p">
+            <h4>Por Etapa</h4>
+            <div class="etapa-linha"><span class="rot"><b>Em Contato</b><small>2 negócios · chance 10%</small></span><span class="barra" style="width:44%"></span><span class="val">R$ 3.980<small>+ R$ 4.980 única</small></span></div>
+            <div class="etapa-linha"><span class="rot"><b>Proposta Enviada</b><small>2 negócios · chance 40%</small></span><span class="barra" style="width:28%"></span><span class="val">R$ 2.490<small>+ R$ 38.990 única</small></span></div>
+            <div class="etapa-linha"><span class="rot"><b>Futuro</b><small>1 negócio · chance 10%</small></span><span class="barra" style="width:14%"></span><span class="val">R$ 1.290<small>+ R$ 1.990 única</small></span></div>
+            <div class="etapa-linha"><span class="rot"><b>Frio</b><small>1 negócio · chance 5%</small></span><span class="barra" style="width:14%"></span><span class="val">R$ 1.290<small>+ R$ 1.990 única</small></span></div>
+            <div class="mini"><span>Barras: MRR em negociação por etapa</span></div>
+          </div>
+          <div class="cartao-p">
+            <h4>Precisa de Atenção</h4>
+            <ul class="atencao">
+              <li><div class="txt"><strong>Vale Verde Imóveis</strong><small>Proposta vence em 20/11/2026</small></div><span class="selo selo-perigo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Vence em 5 Dias</span></li>
+              <li><div class="txt"><strong>Movimenta Cargas</strong><small>Proposta vence em 22/11/2026</small></div><span class="selo selo-perigo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Vence em 7 Dias</span></li>
+              <li><div class="txt"><strong>Ótica Central</strong><small>Em Futuro há 32 dias</small></div><span class="selo selo-alerta"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Parado</span></li>
+              <li><div class="txt"><strong>Lima &amp; Souza Advogados</strong><small>Em Contato há 19 dias</small></div><span class="selo selo-alerta"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Parado</span></li>
+              <li><div class="txt"><strong>Padaria Trigo Bom</strong><small>Sem data prevista de fechamento</small></div><span class="selo selo-alerta"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Sem Data</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <section class="secao">
+          <h3>Previsão de Fechamento</h3>
+          <p class="dica">Pela data prevista de cada oportunidade. Valores ponderados pela chance da etapa.</p>
+          <div class="cartao-p">
+            <table class="tab">
+              <thead><tr><th>Mês</th><th>Negócios</th><th>MRR</th><th>Única</th></tr></thead>
+              <tbody>
+                <tr><td>Dezembro</td><td>2</td><td>R$ 996</td><td>R$ 15.596</td></tr>
+                <tr><td>Janeiro</td><td>2</td><td>R$ 398</td><td>R$ 498</td></tr>
+                <tr><td>Março</td><td>1</td><td>R$ 129</td><td>R$ 199</td></tr>
+                <tr><td>Sem Data</td><td>1</td><td>R$ 65</td><td>R$ 100</td></tr>
+                <tr class="total"><td>Total</td><td>6</td><td>R$ 1.588</td><td>R$ 16.393</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="secao">
+          <h3>Faturamento Projetado</h3>
+          <p class="dica">O que deve entrar no caixa mês a mês. O desconto temporário aparece aqui (Casa Forte paga R$ 3.582 até janeiro), mas não muda o MRR.</p>
+          <div class="cartao-p">
+            <div class="legenda" aria-hidden="true"><span><i class="l1"></i>Recorrente</span><span><i class="l2"></i>Receita Única</span><span><i class="l3"></i>Funil Ponderado</span></div>
+            <div class="grafico" id="grafico"></div>
+            <details class="ver-tabela">
+              <summary>Ver em Tabela</summary>
+              <table class="tab" id="tabela-grafico"></table>
+            </details>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <nav class="nav-baixo" aria-label="Menu principal">
+    <button type="button" class="ativo"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="rot">Painel</span></button>
+    <button type="button"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="11" rx="1.5"/><rect x="17" y="4" width="4" height="7" rx="1.5"/></svg><span class="rot">Funil</span></button>
+    <button type="button"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg><span class="rot">Propostas</span></button>
+    <button type="button"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V6l7-3v17M11 9h9v11M7 8h.01M7 12h.01M7 16h.01M15 13h2M15 17h2"/><path d="M2.5 20h19"/></svg><span class="rot">Empresas</span></button>
+  </nav>
+</div>
+
+<script>
+// Faturamento projetado (fictício): recorrente cobrado, receita única contratada e funil ponderado.
+var MESES = [
+  { mes: 'Nov', nome: 'Novembro', rec: 7072, uni: 2990, fun: 0 },
+  { mes: 'Dez', nome: 'Dezembro', rec: 7072, uni: 4000, fun: 1196 },
+  { mes: 'Jan', nome: 'Janeiro', rec: 7072, uni: 4000, fun: 3894 },
+  { mes: 'Fev', nome: 'Fevereiro', rec: 7470, uni: 4000, fun: 3794 },
+  { mes: 'Mar', nome: 'Março', rec: 7470, uni: 0, fun: 3993 },
+  { mes: 'Abr', nome: 'Abril', rec: 7470, uni: 0, fun: 3923 }
+];
+var SERIES = [['rec', 'Recorrente', 'var(--serie-1)'], ['uni', 'Receita Única', 'var(--serie-2)'], ['fun', 'Funil Ponderado', 'url(#hachura)']];
+var COR_DICA = { rec: '#2a78d6', uni: '#eb6834', fun: '#1baf7a' };
+var real = function (v) { return 'R$ ' + Math.round(v).toLocaleString('pt-BR'); };
+
+(function () {
+  var g = document.getElementById('grafico');
+  var dica = document.createElement('div');
+  dica.className = 'dica-g'; dica.hidden = true;
+  // desenha na largura real do cartão: texto sempre no tamanho certo, no celular e no computador
+  function desenhar() {
+  var W = Math.max(280, g.clientWidth), H = W < 500 ? 230 : 280, esq = 44, dir = 4, topo = 24, base = 26;
+  var max = 16000, passo = 4000;
+  var larg = (W - esq - dir) / MESES.length, barra = Math.min(56, larg * .6);
+  var y = function (v) { return topo + (H - topo - base) * (1 - v / max); };
+  var s = '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Faturamento projetado de novembro a abril, por tipo de receita">' +
+    '<defs><pattern id="hachura" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#d8f1e8"/><rect width="2.4" height="6" fill="#1baf7a"/></pattern></defs>';
+  for (var t = 0; t <= max; t += passo) {
+    s += '<line x1="' + esq + '" x2="' + (W - dir) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="' + (t === 0 ? '#cfd4da' : 'var(--grade)') + '" stroke-width="1"/>' +
+      '<text class="eixo" x="' + (esq - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + (t === 0 ? '0' : (t / 1000) + ' mil') + '</text>';
+  }
+  MESES.forEach(function (m, i) {
+    var x = esq + i * larg + (larg - barra) / 2, acum = 0, total = m.rec + m.uni + m.fun;
+    var vis = SERIES.filter(function (se) { return m[se[0]] > 0; });
+    vis.forEach(function (se, k) {
+      var v = m[se[0]], y1 = y(acum + v), y0 = y(acum), h = y0 - y1, ultimo = k === vis.length - 1;
+      // ponta de cima arredondada só no último segmento; 2 px de folga entre segmentos
+      var r = ultimo ? Math.min(4, h) : 0, gap = k > 0 ? 2 : 0;
+      var hh = Math.max(0, h - gap);
+      s += ultimo
+        ? '<path d="M' + x + ' ' + (y1 + hh) + 'V' + (y1 + r) + 'Q' + x + ' ' + y1 + ' ' + (x + r) + ' ' + y1 + 'H' + (x + barra - r) + 'Q' + (x + barra) + ' ' + y1 + ' ' + (x + barra) + ' ' + (y1 + r) + 'V' + (y1 + hh) + 'Z" fill="' + se[2] + '"/>'
+        : '<rect x="' + x + '" y="' + y1 + '" width="' + barra + '" height="' + hh + '" fill="' + se[2] + '"/>';
+      acum += v;
+    });
+    s += '<text class="rot-total" x="' + (x + barra / 2) + '" y="' + (y(total) - 7) + '" text-anchor="middle">' + (total / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil</text>' +
+      '<text class="eixo" x="' + (x + barra / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + m.mes + '</text>' +
+      '<rect class="alvo" data-i="' + i + '" x="' + (esq + i * larg) + '" y="' + topo + '" width="' + larg + '" height="' + (H - topo - base) + '" fill="transparent"/>';
+  });
+  g.innerHTML = s + '</svg>';
+  g.appendChild(dica);
+  g.querySelectorAll('.alvo').forEach(function (a) {
+    a.addEventListener('mousemove', function (ev) { mostrar(+a.dataset.i, ev); });
+    a.addEventListener('click', function (ev) { mostrar(+a.dataset.i, ev); });
+    a.addEventListener('mouseleave', function () { dica.hidden = true; });
+  });
+  }
+  desenhar();
+  var tm = null;
+  window.addEventListener('resize', function () { clearTimeout(tm); tm = setTimeout(desenhar, 120); });
+
+  function mostrar(i, ev) {
+    var m = MESES[i];
+    dica.innerHTML = '<strong>' + m.nome + '</strong>' + SERIES.map(function (se) {
+      return '<div><span><i style="background:' + COR_DICA[se[0]] + '"></i>' + se[1] + '</span><b>' + real(m[se[0]]) + '</b></div>';
+    }).join('') + '<div class="soma"><span>Total</span><b>' + real(m.rec + m.uni + m.fun) + '</b></div>';
+    dica.hidden = false;
+    var caixa = g.getBoundingClientRect(), px = ev.clientX - caixa.left, py = ev.clientY - caixa.top;
+    var lx = px + 14 + 200 > caixa.width ? px - 214 : px + 14;
+    dica.style.left = Math.max(0, lx) + 'px'; dica.style.top = Math.max(0, py - 40) + 'px';
+  }
+  document.addEventListener('click', function (ev) { if (!ev.target.closest('.grafico')) dica.hidden = true; });
+
+  var tot = { rec: 0, uni: 0, fun: 0 };
+  document.getElementById('tabela-grafico').innerHTML = '<thead><tr><th>Mês</th><th>Recorrente</th><th>Única</th><th>Funil</th><th>Total</th></tr></thead><tbody>' +
+    MESES.map(function (m) { tot.rec += m.rec; tot.uni += m.uni; tot.fun += m.fun; return '<tr><td>' + m.nome + '</td><td>' + real(m.rec) + '</td><td>' + real(m.uni) + '</td><td>' + real(m.fun) + '</td><td>' + real(m.rec + m.uni + m.fun) + '</td></tr>'; }).join('') +
+    '<tr class="total"><td>Total</td><td>' + real(tot.rec) + '</td><td>' + real(tot.uni) + '</td><td>' + real(tot.fun) + '</td><td>' + real(tot.rec + tot.uni + tot.fun) + '</td></tr></tbody>';
+})();
+</script>
+</body>
+</html>
