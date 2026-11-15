@@ -444,7 +444,9 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
 .modal-cab { padding: 18px 20px 6px; }
 .modal-cab h3 { margin: 0; font-size: 18px; font-family: var(--fonte); font-weight: 600; color: var(--crm-text); }
 .modal-cab p { margin: 6px 0 0; color: var(--texto-2); font-size: 13px; }
-.modal-corpo { padding: 12px 20px; overflow-y: auto; }
+.modal-corpo { padding: 12px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+/* o formulário ocupa a janela: o corpo rola e os botões ficam sempre à vista, mesmo em janela comprida */
+.modal-form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .modal-acoes { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px 18px; }
 .opcoes-radio { display: flex; gap: 8px; margin-bottom: 14px; }
 .opcoes-radio label { flex: 1; border: 1px solid var(--borda-forte); border-radius: var(--raio-p); padding: 9px 10px; cursor: pointer; font-size: 13px; display: flex; gap: 8px; align-items: flex-start; }
