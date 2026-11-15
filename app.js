@@ -80,12 +80,12 @@
     camada.innerHTML = '<div class="modal ' + (op.classe || '') + '" role="dialog" aria-modal="true" aria-label="' + esc(op.titulo) + '">' +
       '<div class="modal-cab"><h3>' + esc(op.titulo) + '</h3>' + (op.subtitulo ? '<p>' + esc(op.subtitulo) + '</p>' : '') + '</div>' +
       '<form class="modal-form" novalidate><div class="modal-corpo">' + op.corpo + '<p class="entrada-erro" data-erro role="alert"></p></div>' +
-      '<div class="modal-acoes">' + (op.obrigatorio ? '' : '<button type="button" class="btn btn-leve" data-cancelar>' + esc(op.fechar || 'Cancelar') + '</button>') +
+      '<div class="modal-acoes">' + (op.obrigatorio || op.semCancelar ? '' : '<button type="button" class="btn btn-leve" data-cancelar>' + esc(op.fechar || 'Cancelar') + '</button>') +
       '<button type="submit" class="btn btn-primario">' + esc(op.botao) + '</button></div></form></div>';
     function fechar() { camada.remove(); document.removeEventListener('keydown', tecla); }
     function tecla(ev) { if (ev.key === 'Escape' && !op.obrigatorio) fechar(); }
     camada.addEventListener('mousedown', function (ev) { if (ev.target === camada && !op.obrigatorio) fechar(); });
-    if (!op.obrigatorio) $('[data-cancelar]', camada).addEventListener('click', fechar);
+    if (!op.obrigatorio && !op.semCancelar) $('[data-cancelar]', camada).addEventListener('click', fechar);
     $('form', camada).addEventListener('submit', function (ev) {
       ev.preventDefault();
       var btn = $('button[type=submit]', camada), erro = $('[data-erro]', camada);
@@ -1072,6 +1072,7 @@
   }
   function desenharPainel(raiz, p, contratos) {
     estado.painel = p;
+    estado.painelContratos = contratos;
     if (estado.painelMes == null || estado.painelMes >= p.meses.length) estado.painelMes = 0;
     var m = p.meses, f = p.faturar, r = p.receita, a = p.andamento, d = p.desempenho;
     var de = m[0].nome.toLowerCase(), ate = m[m.length - 1].nome.toLowerCase();
@@ -1181,13 +1182,40 @@
         '<rect class="alvo" data-i="' + i + '" x="' + (esq + i * larg) + '" y="0" width="' + larg + '" height="' + H + '" fill="transparent"><title>' + m.nome + ': ' + real(total(m)) + '</title></rect>';
     });
     g.innerHTML = s + '</svg>';
-    g.querySelectorAll('.alvo').forEach(function (el) { el.addEventListener('click', function () { estado.painelMes = +el.getAttribute('data-i'); desenharGrafico(); }); });
+    g.querySelectorAll('.alvo').forEach(function (el) { el.addEventListener('click', function () { estado.painelMes = +el.getAttribute('data-i'); desenharGrafico(); abrirMes(estado.painelMes); }); });
     var x = M[sel];
-    $('#proj-mes-cab').innerHTML = '<b>' + esc(x.nome + (sel === 0 ? ' (Atual)' : '') + ': ' + real(total(x)) + ' a receber') + '</b><small>Toque numa barra para ver outro mês</small>';
+    $('#proj-mes-cab').innerHTML = '<b>' + esc(x.nome + (sel === 0 ? ' (Atual)' : '') + ': ' + real(total(x)) + ' a receber') + '</b><small>Toque numa barra para ver as oportunidades do mês</small>';
     $('#proj-totais').innerHTML =
       '<div><small><i class="sw sw1"></i>Garantida</small><strong>' + esc(real(gar(x))) + '</strong><span class="det">' + esc(real(x.mrr) + ' MRR + ' + real(x.fech) + ' fechadas') + '</span></div>' +
       '<div><small><i class="sw sw2"></i>Recorrente</small><strong>' + esc(real(x.pr)) + '</strong><span class="det">Projetado</span></div>' +
       '<div><small><i class="sw sw3"></i>Não Recorrente</small><strong>' + esc(real(x.pn)) + '</strong><span class="det">Projetado</span></div>';
+  }
+  // composição do mês: os contratos e as oportunidades que formam a barra, com o valor de cada um naquele mês
+  function abrirMes(i) {
+    var m = estado.painel.meses[i], gar = m.itens.filter(function (x) { return x.garantida > 0; }), proj = m.itens.filter(function (x) { return x.garantida === 0; });
+    var somaDe = function (l) { return l.reduce(function (s, x) { return s + x.total; }, 0); };
+    var item = function (x) {
+      var parte = x.garantida ? 'garantida' : x.pr && x.pn ? 'projetado' : x.pr ? 'recorrente' : 'não recorrente';
+      var detalhe = x.tipo === 'contrato' ? x.descricao + ' · ' + x.motivo : (estado.etapas[x.etapa] || '') + ' · chance ' + x.chance + '% · ' + x.motivo;
+      return '<div class="contrato-item" tabindex="0" ' + (x.oportunidade_id ? 'data-ir-op="' + x.oportunidade_id + '"' : 'data-ir-contrato="' + x.contrato_id + '"') + '><div class="txt"><strong>' + esc(x.empresa) +
+        '</strong><small>' + esc(detalhe) + '</small></div><div class="val">' + esc(real(x.total)) + '<small>' + parte + '</small></div></div>';
+    };
+    var grupo = function (titulo, l) { return l.length ? '<div class="campo-grupo">' + esc(titulo + ' · ' + real(somaDe(l))) + '</div><div class="contratos-lista">' + l.map(item).join('') + '</div>' : ''; };
+    var camada = modal({
+      titulo: m.nome + (i === 0 ? ' (Atual)' : '') + ': ' + real(m.mrr + m.fech + m.pr + m.pn) + ' a receber', subtitulo: 'O que forma este mês. Toque para abrir.',
+      botao: 'Fechar', semCancelar: true, classe: 'largo',
+      corpo: m.itens.length ? grupo('Garantida', gar) + grupo('Projetado (ponderado pela chance)', proj) : '<p class="op-nada">Nada previsto para este mês.</p>',
+      enviar: function () { return Promise.resolve(); }
+    });
+    camada.querySelectorAll('[data-ir-op], [data-ir-contrato]').forEach(function (el) {
+      var abrir = function () {
+        camada.remove();
+        if (el.hasAttribute('data-ir-op')) { location.hash = '#/oportunidade/' + el.getAttribute('data-ir-op'); return; }
+        abrirContrato((estado.painelContratos || []).filter(function (c) { return String(c.id) === el.getAttribute('data-ir-contrato'); })[0], telaPainel);
+      };
+      el.addEventListener('click', abrir);
+      el.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') abrir(); });
+    });
   }
   var tmGrafico = null;
   window.addEventListener('resize', function () { clearTimeout(tmGrafico); tmGrafico = setTimeout(desenharGrafico, 150); });
