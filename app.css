@@ -844,3 +844,4 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
 .op-etapa-card .campo input[type="month"] { width: 100%; }
 .campo-fecha-proposta { margin-top: 14px; }
 @media (max-width: 767px) { .card .valor-card { font-size: 13px; padding: 8px 10px; } }
+.op-fonte { margin: 10px 0 0; font-size: 12.5px; }

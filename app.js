@@ -910,11 +910,15 @@
 
   // valores previstos da oportunidade (usados no Painel, ponderados pela chance da etapa)
   function cardValores(o, linha) {
+    // o valor acompanha a proposta (a menor opção, quando o cliente escolhe); sem proposta, vale o informado à mão
+    var v = o.valor || {};
     var c = '<div class="op-card op-valores"><h3>Valores e Previsão</h3><div class="op-linhas">' +
-      linha('documento', 'Mensalidade', o.prev_mensal ? esc(real(o.prev_mensal)) + '<small>' + (o.prev_tipo === 'projeto' ? 'Projeto de ' + o.prev_meses + ' meses' : 'Recorrente') + '</small>' : '') +
-      linha('documento', 'Receita Única', o.prev_unica ? esc(real(o.prev_unica)) : '') +
+      linha('documento', 'Mensalidade', v.mensal ? esc(real(v.mensal)) + '<small>' + (v.tipo === 'projeto' ? 'Projeto de ' + v.meses + ' meses' : 'Recorrente') + '</small>' : '') +
+      linha('documento', 'Receita Única', v.unica ? esc(real(v.unica)) : '') +
       linha('relogio', 'Fechamento', o.prev_fechamento ? esc(nomeMes(o.prev_fechamento.slice(0, 7))) : '') +
-      '</div><div class="op-card-btns"><button type="button" class="btn btn-p" id="op-valores">' + icone('editar', 'icone-p') + 'Editar Valores</button></div></div>';
+      '</div>' + (v.fonte
+        ? '<p class="op-nada op-fonte">Da proposta: ' + esc(v.fonte) + '. Acompanha a proposta sozinho.</p></div>'
+        : '<div class="op-card-btns"><button type="button" class="btn btn-p" id="op-valores">' + icone('editar', 'icone-p') + 'Editar Valores</button></div></div>');
     if (o.etapa === 'ganho') {
       c += '<div class="op-card"><h3>Contrato</h3>' + (o.contratos.length
         ? '<div class="contratos-lista">' + o.contratos.map(function (x) { return itemContrato(x, false); }).join('') + '</div>'
@@ -923,7 +927,8 @@
     return c;
   }
   function ligarValores(o, camada, re) {
-    $('#op-valores', camada).addEventListener('click', function () { formPrevisao(o, re); });
+    var ed = $('#op-valores', camada);
+    if (ed) ed.addEventListener('click', function () { formPrevisao(o, re); });
     var reg = $('#op-registrar', camada);
     if (reg) reg.addEventListener('click', function () { registrarContrato(o, re); });
     camada.querySelectorAll('.op-valores ~ .op-card [data-contrato]').forEach(function (el) {
