@@ -33,8 +33,28 @@
         <p class="sub">Entre com seu e-mail e senha para continuar.</p>
         <label class="campo"><span>E-mail</span><input type="email" id="entrada-email" autocomplete="username" placeholder="nome@empresa.com.br" required></label>
         <label class="campo"><span>Senha</span><span class="senha"><input type="password" id="entrada-senha" autocomplete="current-password" required><button type="button" class="olho" aria-label="Mostrar Senha" title="Mostrar Senha"></button></span></label>
+        <button type="button" class="esqueci" data-entrada="esqueci">Esqueceu Sua Senha?</button>
+        <p class="recado" id="entrada-recado" role="status" hidden></p>
         <p class="entrada-erro" id="entrada-erro" role="alert"></p>
         <button type="submit" class="btn btn-primario btn-bloco" id="entrada-btn">Entrar</button>
+      </form>
+      <form class="entrada-form" id="esqueci-form" novalidate hidden>
+        <h2>Recupere Seu Acesso</h2>
+        <p class="sub">Informe seu e-mail. Enviamos um link para criar a nova senha.</p>
+        <label class="campo"><span>E-mail</span><input type="email" id="esqueci-email" autocomplete="username" placeholder="nome@empresa.com.br" required></label>
+        <p class="recado" id="esqueci-recado" role="status" hidden>Se o e-mail estiver cadastrado, o link chega em instantes. Ele vale por 30 minutos.</p>
+        <p class="entrada-erro" id="esqueci-erro" role="alert"></p>
+        <button type="submit" class="btn btn-primario btn-bloco" id="esqueci-btn">Enviar Link</button>
+        <button type="button" class="voltar" data-entrada="entrar">Voltar para a Entrada</button>
+      </form>
+      <form class="entrada-form" id="redefinir-form" novalidate hidden>
+        <h2>Crie Sua Nova Senha</h2>
+        <p class="sub">Depois de salvar, as sessões abertas são encerradas.</p>
+        <label class="campo"><span>Nova Senha</span><span class="senha"><input type="password" id="redefinir-nova" autocomplete="new-password" minlength="6" required><button type="button" class="olho" aria-label="Mostrar Senha" title="Mostrar Senha"></button></span><small>Pelo menos 6 caracteres.</small></label>
+        <label class="campo"><span>Repita a Nova Senha</span><span class="senha"><input type="password" id="redefinir-repete" autocomplete="new-password" required><button type="button" class="olho" aria-label="Mostrar Senha" title="Mostrar Senha"></button></span></label>
+        <p class="entrada-erro" id="redefinir-erro" role="alert"></p>
+        <button type="submit" class="btn btn-primario btn-bloco" id="redefinir-btn">Salvar Senha</button>
+        <button type="button" class="voltar" data-entrada="entrar">Voltar para a Entrada</button>
       </form>
     </div>
   </div>
