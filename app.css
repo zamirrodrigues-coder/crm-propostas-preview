@@ -602,6 +602,11 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
    Tudo aqui vale só até 767 px; o computador continua como estava. Alvo de toque com pelo menos 44 px,
    campos com letra de 16 px (o iPhone não dá zoom) e respiro para a barra de gestos do aparelho. */
 .funil-acoes, .so-celular, .seta-etapa { display: none; }
+/* valor dos negócios da etapa: no computador, linha abaixo do título; no celular, à direita */
+.coluna-cab { flex-wrap: wrap; }
+.valor-etapa { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 0 6px; font-size: 11.5px; color: var(--texto-2); font-variant-numeric: tabular-nums; }
+.valor-etapa b { font-weight: 600; color: var(--crm-text); }
+.valor-etapa small { font-size: 11.5px; }
 /* cor de cada etapa (no celular: faixa à esquerda e contador) */
 .coluna[data-etapa="em_contato"] { --cor-etapa: #2a78d6; --cor-etapa-fundo: #e6effb; }
 .coluna[data-etapa="proposta_enviada"] { --cor-etapa: #6250d6; --cor-etapa-fundo: #ecebfb; }
@@ -644,7 +649,11 @@ button.op-etapa:focus-visible { outline: 2px solid var(--crm-accent); outline-of
   .coluna-cab { min-height: 52px; padding: 0 14px; margin-bottom: 10px; background: var(--crm-surface); border: 1px solid var(--crm-border); border-left: 5px solid var(--cor-etapa); border-radius: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
   .coluna-cab h4 { font-size: 15.5px; font-weight: 700; color: var(--crm-text); }
   .coluna .coluna-cab .qtd { min-width: 26px; padding: 2px 9px; border-radius: 13px; text-align: center; font-size: 13.5px; font-weight: 700; background: var(--cor-etapa-fundo); color: var(--cor-etapa); }
-  .seta-etapa { display: block; margin-left: auto; width: 20px; height: 20px; color: var(--crm-text-muted); transition: transform .15s ease; }
+  .coluna-cab { flex-wrap: nowrap; }
+  .valor-etapa { flex-basis: auto; margin-left: auto; flex-direction: column; align-items: flex-end; text-align: right; font-size: 13px; line-height: 1.25; }
+  .valor-etapa b { font-size: 13.5px; }
+  .valor-etapa small { font-size: 11.5px; color: var(--crm-text-muted); }
+  .seta-etapa { display: block; margin-left: 4px; width: 20px; height: 20px; flex: none; color: var(--crm-text-muted); transition: transform .15s ease; }
   .coluna.recolhida .seta-etapa { transform: rotate(-90deg); }
   .coluna.recolhida .coluna-cab { margin-bottom: 0; }
   .coluna.recolhida .coluna-cartoes { display: none; }

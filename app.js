@@ -299,7 +299,10 @@
         var daEtapa = vis.filter(function (o) { return o.etapa === e; });
         var cls = e === 'ganho' ? ' fim-ganho' : e === 'perdido' ? ' fim-perdido' : e === 'futuro' ? ' lado-futuro' : e === 'frio' ? ' lado-frio' : '';
         var fechada = !!estado.recolhidas[e];
-        return '<div class="coluna' + cls + (fechada ? ' recolhida' : '') + '" data-etapa="' + e + '"><div class="coluna-cab" data-alternar="' + e + '" tabindex="0" aria-expanded="' + !fechada + '"><h4>' + esc(estado.etapas[e]) + '</h4><span class="qtd">' + daEtapa.length.toLocaleString('pt-BR') + '</span>' + icone('chevron', 'seta-etapa') + '</div>' +
+        // valor dos negócios da etapa: mensalidade recorrente somada e receita única somada (mesmo critério do Painel)
+        var vm = daEtapa.reduce(function (s, o) { return s + (o.valor_mensal || 0); }, 0), vu = daEtapa.reduce(function (s, o) { return s + (o.valor_unica || 0); }, 0);
+        var valorEtapa = '<span class="valor-etapa">' + (vm || vu ? (vm ? '<b>' + esc(moeda.format(vm)) + '/mês</b>' : '') + (vu ? '<small>' + (vm ? '+ ' : '') + esc(moeda.format(vu)) + ' única</small>' : '') : '<small>Sem valor</small>') + '</span>';
+        return '<div class="coluna' + cls + (fechada ? ' recolhida' : '') + '" data-etapa="' + e + '"><div class="coluna-cab" data-alternar="' + e + '" tabindex="0" aria-expanded="' + !fechada + '"><h4>' + esc(estado.etapas[e]) + '</h4><span class="qtd">' + daEtapa.length.toLocaleString('pt-BR') + '</span>' + valorEtapa + icone('chevron', 'seta-etapa') + '</div>' +
           '<div class="coluna-cartoes">' + (daEtapa.map(cartao).join('') || '<div class="vazio vazio-coluna">Nenhuma Oportunidade</div>') + '</div></div>';
       }).join('');
       var manter = document.activeElement && document.activeElement.id === 'funil-busca';
