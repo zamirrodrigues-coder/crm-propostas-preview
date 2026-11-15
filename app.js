@@ -280,6 +280,8 @@
       '<div class="linha1"><span class="nome-c">' + esc(o.empresa) + '</span></div>' +
       (contato ? '<div class="contato-c">' + esc(contato) + '</div>' : '') +
       (local ? '<div class="assunto">' + esc(local) + '</div>' : '') +
+      '<div class="valor-card"><span>' + (o.valor_mensal || o.valor_unica ? (o.valor_mensal ? '<b>' + esc(moeda.format(o.valor_mensal)) + '/mês</b>' : '') + (o.valor_unica ? (o.valor_mensal ? ' + ' : '<b>') + esc(moeda.format(o.valor_unica)) + ' única' + (o.valor_mensal ? '' : '</b>') : '') : '<i>Sem valor</i>') + '</span>' +
+        '<span class="fecha-card">' + icone('relogio', 'icone-p') + (o.prev_fechamento ? esc(NOMES_MES[+o.prev_fechamento.slice(5, 7) - 1].slice(0, 3) + '/' + o.prev_fechamento.slice(0, 4)) : '<i>Sem data</i>') + '</span></div>' +
       '<div class="rodape-c"><span class="acao">Oportunidade ' + o.id + '</span><span class="tempo" title="Tempo na etapa">' + icone('relogio', 'icone-p') + ' ' + esc(haQuanto(o.etapa_em)) + '</span></div>' +
       '<div class="mover-mobile"><select data-mover="' + o.id + '" aria-label="Mover para"><option value="">Mover para...</option>' +
       outras.map(function (e) { return '<option value="' + e + '">' + esc(estado.etapas[e]) + '</option>'; }).join('') + '</select></div></div>';
@@ -575,10 +577,12 @@
           }).join('');
           modal({
             titulo: 'Gerar Proposta', subtitulo: 'Escolha o modelo. O rascunho já vem com os dados da empresa e do contato.', botao: 'Gerar Rascunho',
-            corpo: '<div class="modelos">' + opcoes + '</div>',
+            corpo: '<div class="modelos">' + opcoes + '</div>' +
+              '<label class="campo campo-fecha-proposta"><span>Previsão de Fechamento</span><input type="month" name="fechamento" min="' + mesAtual() + '" value="' + esc((o.prev_fechamento || '').slice(0, 7)) + '" required><small>Obrigatória: mês e ano em que o negócio deve fechar.</small></label>',
             enviar: function (c) {
-              var modelo = ($('input[name=modelo]:checked', c) || {}).value;
-              return api('POST', '/oportunidades/' + o.id + '/propostas/gerar', { modelo: modelo }).then(function (r) {
+              var modelo = ($('input[name=modelo]:checked', c) || {}).value, fechamento = valor(c, 'fechamento');
+              if (!fechamento) return Promise.reject(new Error('Informe a previsão de fechamento (mês e ano).'));
+              return api('POST', '/oportunidades/' + o.id + '/propostas/gerar', { modelo: modelo, fechamento: fechamento }).then(function (r) {
                 aviso('Proposta ' + r.numero + ' criada em rascunho.');
                 setTimeout(function () { editarRevisao(r, depois); }, 50);
               });
@@ -821,11 +825,15 @@
         linha('documento', 'CNPJ', esc(cnpj(e.cnpj))) + linha('local', 'Cidade', esc(e.cidade || '')) + linha('empresas', 'Segmento', esc(e.segmento || '')) +
         linha('site', 'Site', e.site ? '<a href="' + esc(linkSite(e.site)) + '" target="_blank" rel="noopener noreferrer">' + esc(e.site) + '</a>' : '') +
         '</div>' + (e.observacao ? '<p class="op-obs">' + esc(e.observacao) + '</p>' : '') + '</div>' +
+        '<div class="op-card op-etapa-card"><h3>Etapa</h3><label class="campo"><span>Mudar para</span><select id="op-etapa-sel" class="op-select">' +
+        estado.ordem.map(function (x) { return '<option value="' + x + '"' + (x === o.etapa ? ' selected' : '') + '>' + esc(estado.etapas[x]) + '</option>'; }).join('') + '</select></label>' +
+        (o.etapa === 'ganho' || o.etapa === 'perdido' ? '' :
+          '<label class="campo campo-sem-margem"><span>Previsão de Fechamento</span><input type="month" id="op-fechamento" class="op-select" min="' + mesAtual() + '" value="' + esc((o.prev_fechamento || '').slice(0, 7)) + '">' +
+          (o.prev_fechamento ? '' : '<small>Informe o mês para o negócio entrar na previsão do Painel.</small>') + '</label>') + '</div>' +
         '<div class="op-card"><h3>Histórico</h3><div class="linha-tempo op-tempo">' + (hist || '<div class="op-nada">Sem registros.</div>') + '</div></div>' +
         '</div><div class="op-lado">' +
         cardValores(o, linha) +
-        '<div class="op-card"><h3>Etapa</h3><label class="campo campo-sem-margem"><span>Mudar para</span><select id="op-etapa-sel" class="op-select">' +
-        estado.ordem.map(function (x) { return '<option value="' + x + '"' + (x === o.etapa ? ' selected' : '') + '>' + esc(estado.etapas[x]) + '</option>'; }).join('') + '</select></label></div>' +
+
         '<div class="op-card"><h3>Propostas</h3><div id="op-propostas"><div class="op-nada">Carregando</div></div></div>' +
         '<div class="op-card"><h3>Contato</h3>' + (c.nome || c.whatsapp || c.email ?
           '<div class="op-pessoa"><span class="avatar avatar-g avatar-contato">' + esc(sigla(c.nome || e.nome)) + '</span><div><strong>' + esc(c.nome || 'Sem Nome') + '</strong>' + (c.cargo ? '<div class="op-sub op-sub-cargo">' + esc(c.cargo) + '</div>' : '') + '</div></div>' +
@@ -846,6 +854,14 @@
         b.addEventListener('click', function () { if (b.getAttribute('data-etapa') !== o.etapa) mover(id, b.getAttribute('data-etapa'), re); });
       });
       $('#op-etapa-sel', camada).addEventListener('change', function (ev) { mover(id, ev.target.value, re); });
+      var fecha = $('#op-fechamento', camada);
+      if (fecha) fecha.addEventListener('change', function () {
+        if (!fecha.value) return;
+        api('PUT', '/oportunidades/' + id + '/fechamento', { mes: fecha.value })
+          .then(function () { aviso('Previsão de fechamento: ' + nomeMes(fecha.value) + '.'); })
+          .catch(function (er) { aviso(er.message, true); })
+          .then(re);
+      });
       cardPropostas(o, $('#op-propostas', camada), re);
       ligarValores(o, camada, re);
     }).catch(function (er) {
@@ -897,7 +913,7 @@
     var c = '<div class="op-card op-valores"><h3>Valores e Previsão</h3><div class="op-linhas">' +
       linha('documento', 'Mensalidade', o.prev_mensal ? esc(real(o.prev_mensal)) + '<small>' + (o.prev_tipo === 'projeto' ? 'Projeto de ' + o.prev_meses + ' meses' : 'Recorrente') + '</small>' : '') +
       linha('documento', 'Receita Única', o.prev_unica ? esc(real(o.prev_unica)) : '') +
-      linha('relogio', 'Fechamento', o.prev_fechamento ? esc(dataCurta(o.prev_fechamento)) : '') +
+      linha('relogio', 'Fechamento', o.prev_fechamento ? esc(nomeMes(o.prev_fechamento.slice(0, 7))) : '') +
       '</div><div class="op-card-btns"><button type="button" class="btn btn-p" id="op-valores">' + icone('editar', 'icone-p') + 'Editar Valores</button></div></div>';
     if (o.etapa === 'ganho') {
       c += '<div class="op-card"><h3>Contrato</h3>' + (o.contratos.length
@@ -923,7 +939,7 @@
         '<label class="campo" data-so-projeto><span>Por Quantos Meses</span><input type="number" name="meses" min="1" max="120" inputmode="numeric" value="' + (o.prev_meses || '') + '"></label></div>' +
         '<div class="campo-grupo">Receita Única e Fechamento</div>' +
         '<div class="duas">' + campoValor('unica', 'Receita Única Prevista (R$)', o.prev_unica, 'Implantação ou valor cobrado uma vez.') +
-        '<label class="campo"><span>Data Prevista de Fechamento</span><input type="date" name="fechamento" value="' + esc(o.prev_fechamento || '') + '"></label></div>',
+        '<label class="campo"><span>Previsão de Fechamento</span><input type="month" name="fechamento" min="' + mesAtual() + '" value="' + esc((o.prev_fechamento || '').slice(0, 7)) + '"></label></div>',
       enviar: function (c) {
         return api('PUT', '/oportunidades/' + o.id + '/previsao', { tipo: radio(c, 'tipo'), mensal: valor(c, 'mensal'), meses: valor(c, 'meses'), unica: valor(c, 'unica'), fechamento: valor(c, 'fechamento') })
           .then(function () { aviso('Valores salvos. O Painel já considera.'); depois(); });
