@@ -4,183 +4,66 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title>CRM de Propostas: Prévia da Tela de Entrada</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Manrope:wght@700;800&display=swap">
-<style>
-:root {
-  --navy: #12233a; --navy-2: #0e1d30; --navy-hover: #1b3150;
-  --menta: #22a884; --menta-link: #17795e;
-  --texto: #12233a; --texto-2: #5b6675; --rotulo: #1c2533;
-  --borda: #d6dbe1; --fundo: #eef1f5; --painel: #f8fafc;
-  --perigo: #b42318; --ok: #167154; --ok-fundo: #e5f4ed;
-  --titulo: "Manrope", "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --fonte: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
-}
-* { box-sizing: border-box; }
-html, body { margin: 0; }
-body { font-family: var(--fonte); font-size: 15px; color: var(--texto); background: var(--fundo); -webkit-font-smoothing: antialiased; min-height: 100vh; }
-button, input { font: inherit; }
-button { cursor: pointer; }
-
-/* barra só da prévia (não vai para o CRM) */
-.previa { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center; padding: 12px 12px 0; font-size: 12px; color: var(--texto-2); }
-.previa span { font-weight: 600; margin-right: 4px; }
-.previa button { border: 1px solid var(--borda); background: #fff; border-radius: 999px; padding: 5px 11px; font-size: 12px; color: var(--texto-2); }
-.previa button[aria-pressed="true"] { background: var(--navy); border-color: var(--navy); color: #fff; }
-
-/* ---------- Tela de entrada ---------- */
-.entrada { min-height: calc(100vh - 44px); display: grid; place-items: center; padding: 28px 24px; }
-.cartao { width: min(1000px, 100%); min-height: 640px; display: grid; grid-template-columns: 41% 1fr; background: var(--painel); border-radius: 16px; overflow: hidden; box-shadow: 0 2px 6px rgba(16, 24, 40, .05), 0 22px 60px rgba(16, 24, 40, .12); }
-
-.marca { position: relative; overflow: hidden; background: linear-gradient(160deg, #13263e 0%, var(--navy-2) 100%); color: #fff; padding: 56px 52px; }
-.logo { width: 64px; height: 64px; border: 2px solid var(--menta); border-radius: 12px; display: grid; place-items: center; font-family: var(--titulo); font-weight: 700; font-size: 25px; letter-spacing: .5px; }
-.marca h1 { font-family: var(--titulo); font-weight: 800; font-size: 46px; line-height: 1.08; margin: 64px 0 22px; letter-spacing: -.5px; }
-.barra { display: block; width: 62px; height: 6px; border-radius: 3px; background: var(--menta); }
-.marca p { margin: 40px 0 0; font-size: 17px; line-height: 1.5; color: #c6d0db; max-width: 260px; position: relative; z-index: 1; }
-.curvas { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 46%; pointer-events: none; }
-
-.form-lado { display: grid; place-items: center; padding: 48px 56px; }
-.form { width: 100%; max-width: 400px; }
-.form h2 { font-family: var(--titulo); font-weight: 800; font-size: 38px; line-height: 1.12; margin: 0; letter-spacing: -.4px; color: var(--texto); }
-.form .sub { margin: 12px 0 34px; font-size: 16.5px; line-height: 1.45; color: var(--texto-2); }
-.campo { display: block; margin-bottom: 20px; }
-.campo > .rot { display: block; font-size: 14.5px; font-weight: 600; color: var(--rotulo); margin-bottom: 8px; }
-.campo input { width: 100%; height: 46px; padding: 0 14px; border: 1px solid var(--borda); border-radius: 8px; background: #fff; color: var(--texto); outline: none; font-size: 15.5px; }
-.campo input::placeholder { color: #8a93a0; }
-.campo input:focus { border-color: var(--menta-link); box-shadow: 0 0 0 3px rgba(23, 121, 94, .14); }
-.campo small { display: block; font-size: 12.5px; color: var(--texto-2); margin-top: 6px; }
-.senha { position: relative; }
-.senha input { padding-right: 48px; }
-.senha input[type="password"] { letter-spacing: 2px; }
-.olho { position: absolute; top: 50%; right: 6px; transform: translateY(-50%); width: 36px; height: 36px; border: 0; border-radius: 6px; background: transparent; color: #4b5565; display: grid; place-items: center; }
-.olho:hover { background: #f1f3f6; color: var(--texto); }
-.olho svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.esqueci { display: block; margin: -8px 0 28px auto; width: max-content; border: 0; background: none; padding: 2px 0; color: var(--menta-link); font-size: 14.5px; font-weight: 500; }
-.esqueci:hover { text-decoration: underline; }
-.btn { width: 100%; height: 48px; border: 0; border-radius: 8px; background: var(--navy); color: #fff; font-size: 16.5px; font-weight: 600; }
-.btn:hover { background: var(--navy-hover); }
-.voltar { display: block; margin: 18px auto 0; border: 0; background: none; color: var(--menta-link); font-size: 14.5px; font-weight: 500; }
-.voltar:hover { text-decoration: underline; }
-.recado { background: var(--ok-fundo); color: var(--ok); border-radius: 8px; padding: 12px 14px; font-size: 14px; line-height: 1.45; margin: -4px 0 20px; }
-
-/* ---------- E-mail de exemplo ---------- */
-.email { width: min(560px, 100%); background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 6px rgba(16, 24, 40, .05), 0 22px 60px rgba(16, 24, 40, .12); }
-.email-cab { padding: 14px 20px; font-size: 13px; line-height: 1.6; color: var(--texto-2); border-bottom: 1px solid #e3e5e8; }
-.email-cab strong { color: var(--texto); }
-.email-topo { background: linear-gradient(160deg, #13263e 0%, var(--navy-2) 100%); padding: 26px 28px; display: flex; align-items: center; gap: 14px; color: #fff; font-family: var(--titulo); font-weight: 800; font-size: 20px; }
-.email-topo .logo { width: 44px; height: 44px; font-size: 17px; border-radius: 9px; }
-.email-corpo { padding: 26px 28px 30px; line-height: 1.6; font-size: 15.5px; }
-.email-corpo p { margin: 0 0 14px; }
-.email-corpo .btn { display: inline-grid; place-items: center; width: auto; padding: 0 24px; margin: 6px 0 18px; }
-.email-corpo .nota { color: var(--texto-2); font-size: 13.5px; }
-
-/* ---------- Celular ---------- */
-@media (max-width: 760px) {
-  .entrada { padding: 0; place-items: stretch; min-height: calc(100vh - 44px); }
-  .cartao { grid-template-columns: 1fr; border-radius: 0; box-shadow: none; min-height: 100%; background: var(--navy-2); }
-  .marca { padding: 34px 28px 64px; }
-  .logo { width: 52px; height: 52px; font-size: 21px; border-radius: 10px; }
-  .marca h1 { font-size: 34px; margin: 26px 0 16px; }
-  .marca p { display: none; }
-  .curvas { left: auto; right: -40px; width: 70%; height: 100%; }
-  .form-lado { background: #fff; border-radius: 24px 24px 0 0; margin-top: -26px; position: relative; padding: 34px 26px 40px; place-items: start stretch; }
-  .form { max-width: none; }
-  .form h2 { font-size: 29px; }
-  .form .sub { font-size: 15.5px; margin-bottom: 26px; }
-  .entrada:has(.email) { padding: 16px; place-items: start center; }
-}
-</style>
+<title>CRM de Propostas</title>
+<meta name="theme-color" content="#12233a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CRM ZR">
+<link rel="icon" type="image/png" href="icone-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap">
+<link rel="stylesheet" href="app.css">
 </head>
 <body>
-<nav class="previa" aria-label="Telas da prévia">
-  <span>Prévia:</span>
-  <button type="button" data-tela="entrar" aria-pressed="true">1 Entrada</button>
-  <button type="button" data-tela="esqueci" aria-pressed="false">2 Esqueceu a Senha</button>
-  <button type="button" data-tela="email" aria-pressed="false">3 E-mail</button>
-  <button type="button" data-tela="nova" aria-pressed="false">4 Nova Senha</button>
-</nav>
-
-<main class="entrada" id="raiz"></main>
-
-<template id="t-cartao">
-  <div class="cartao">
-    <aside class="marca">
-      <div class="logo">ZR</div>
+<div id="entrada" class="entrada" hidden>
+  <div class="entrada-cartao">
+    <aside class="entrada-marca">
+      <span class="entrada-logo">ZR</span>
       <h1>CRM de Propostas</h1>
-      <span class="barra"></span>
+      <span class="entrada-barra"></span>
       <p>Gestão de propostas com agilidade, organização e controle.</p>
-      <svg class="curvas" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#22a884" stop-opacity=".9"/><stop offset="1" stop-color="#22a884" stop-opacity=".15"/></linearGradient></defs>
-        <path d="M150 300 C230 170 260 70 400 60" fill="none" stroke="url(#g)" stroke-width="2"/>
+      <svg class="entrada-curvas" viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id="entrada-curva" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#22a884" stop-opacity=".9"/><stop offset="1" stop-color="#22a884" stop-opacity=".15"/></linearGradient></defs>
+        <path d="M150 300 C230 170 260 70 400 60" fill="none" stroke="url(#entrada-curva)" stroke-width="2"/>
         <path d="M245 300 C300 200 320 120 400 115" fill="none" stroke="#22a884" stroke-opacity=".3" stroke-width="1.5"/>
       </svg>
     </aside>
-    <section class="form-lado"><form class="form" novalidate></form></section>
+    <div class="entrada-lado">
+      <form class="entrada-form" id="entrada-form" novalidate>
+        <h2>Acesse Sua Conta</h2>
+        <p class="sub">Entre com seu e-mail e senha para continuar.</p>
+        <label class="campo"><span>E-mail</span><input type="email" id="entrada-email" autocomplete="username" placeholder="nome@empresa.com.br" required></label>
+        <label class="campo"><span>Senha</span><span class="senha"><input type="password" id="entrada-senha" autocomplete="current-password" required><button type="button" class="olho" aria-label="Mostrar Senha" title="Mostrar Senha"></button></span></label>
+        <p class="entrada-erro" id="entrada-erro" role="alert"></p>
+        <button type="submit" class="btn btn-primario btn-bloco" id="entrada-btn">Entrar</button>
+      </form>
+    </div>
   </div>
-</template>
+</div>
 
-<script>
-var OLHO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-var OLHO_RISCADO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.1 6.1A17 17 0 0 0 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.9-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
-
-function campoSenha(rotulo, auto) {
-  return '<label class="campo"><span class="rot">' + rotulo + '</span><span class="senha"><input type="password" autocomplete="' + auto + '" value="minhasenha1">' +
-    '<button type="button" class="olho" aria-label="Mostrar Senha" title="Mostrar Senha">' + OLHO + '</button></span></label>';
-}
-
-var TELAS = {
-  entrar: '<h2>Acesse Sua Conta</h2><p class="sub">Entre com seu e-mail e senha para continuar.</p>' +
-    '<label class="campo"><span class="rot">E-mail</span><input type="email" autocomplete="username" placeholder="nome@empresa.com.br"></label>' +
-    campoSenha('Senha', 'current-password') +
-    '<button type="button" class="esqueci" data-ir="esqueci">Esqueceu Sua Senha?</button>' +
-    '<button type="submit" class="btn">Entrar</button>',
-  esqueci: '<h2>Recupere Seu Acesso</h2><p class="sub">Informe seu e-mail. Enviamos um link para criar a nova senha.</p>' +
-    '<label class="campo"><span class="rot">E-mail</span><input type="email" autocomplete="username" placeholder="nome@empresa.com.br"></label>' +
-    '<p class="recado" hidden>Se o e-mail estiver cadastrado, o link chega em instantes. Ele vale por 30 minutos.</p>' +
-    '<button type="submit" class="btn" data-enviar>Enviar Link</button>' +
-    '<button type="button" class="voltar" data-ir="entrar">Voltar para a Entrada</button>',
-  nova: '<h2>Crie Sua Nova Senha</h2><p class="sub">Depois de salvar, as sessões abertas são encerradas.</p>' +
-    campoSenha('Nova Senha', 'new-password').replace('</span></label>', '</span><small>Pelo menos 6 caracteres.</small></label>') +
-    campoSenha('Repita a Nova Senha', 'new-password') +
-    '<button type="submit" class="btn">Salvar Senha</button>'
-};
-
-var EMAIL = '<div class="email">' +
-  '<div class="email-cab"><strong>CRM de Propostas</strong><br>Para: voce@exemplo.com.br<br>Assunto: Crie Sua Nova Senha</div>' +
-  '<div class="email-topo"><div class="logo">ZR</div>CRM de Propostas</div>' +
-  '<div class="email-corpo"><p>Olá, Zamir.</p><p>Recebemos um pedido para criar uma nova senha no CRM de Propostas.</p>' +
-  '<button type="button" class="btn" data-ir="nova">Criar Nova Senha</button>' +
-  '<p class="nota">O link vale por 30 minutos e funciona uma vez só. Se não foi você, ignore este e-mail: sua senha continua a mesma.</p></div></div>';
-
-var raiz = document.getElementById('raiz');
-function mostrar(tela) {
-  document.querySelectorAll('.previa button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.tela === tela ? 'true' : 'false'); });
-  if (tela === 'email') { raiz.innerHTML = EMAIL; return; }
-  raiz.innerHTML = '';
-  raiz.appendChild(document.getElementById('t-cartao').content.cloneNode(true));
-  raiz.querySelector('.form').innerHTML = TELAS[tela];
-}
-
-document.addEventListener('click', function (ev) {
-  var b = ev.target.closest('button');
-  if (!b) return;
-  if (b.dataset.tela) return mostrar(b.dataset.tela);
-  if (b.dataset.ir) return mostrar(b.dataset.ir);
-  if (b.classList.contains('olho')) {
-    var campo = b.previousElementSibling, ver = campo.type === 'password';
-    campo.type = ver ? 'text' : 'password';
-    b.innerHTML = ver ? OLHO_RISCADO : OLHO;
-    b.setAttribute('aria-label', ver ? 'Esconder Senha' : 'Mostrar Senha');
-    b.title = b.getAttribute('aria-label');
-  }
-});
-document.addEventListener('submit', function (ev) {
-  ev.preventDefault();
-  var r = raiz.querySelector('.recado');
-  if (r) r.hidden = false;
-});
-mostrar('entrar');
-</script>
+<div id="app" class="app" hidden>
+  <aside class="lateral" id="lateral">
+    <div class="lat-topo">
+      <div class="escritorio"><span class="esc-sigla">ZR</span><span class="esc-txt rot"><strong>Zamir Rodrigues</strong><small>CRM de Propostas</small></span></div>
+      <button type="button" class="nav-pino" id="nav-pino" aria-pressed="false" aria-label="Fixar o Menu Aberto" title="Fixar o Menu Aberto"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l-1 6 3 3v2H7v-2l3-3-1-6z"/><path d="M12 15v6"/></svg></button>
+    </div>
+    <nav class="nav" id="nav" aria-label="Menu principal"></nav>
+  </aside>
+  <div class="principal">
+    <header class="topo">
+      <div class="topo-titulo"><span class="topo-ic" id="icone-tela"></span><div><h2 id="titulo-tela"></h2><p class="topo-desc" id="desc-tela"></p></div></div>
+      <div class="topo-acoes" id="topo-acoes"></div>
+      <div class="usuario"><button id="usuario-btn" type="button" aria-haspopup="true"></button></div>
+    </header>
+    <main class="tela" id="tela"></main>
+  </div>
+  <nav class="nav-baixo" id="nav-baixo" aria-label="Menu principal"></nav>
+</div>
+<div class="menu" id="usuario-menu" hidden>
+  <div class="menu-quem"><strong id="menu-nome"></strong><small id="menu-email"></small></div>
+  <button type="button" id="acao-trocar-senha"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Trocar Senha</button>
+  <button type="button" id="acao-sair"><svg class="icone" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4"/></svg>Sair</button>
+</div>
+<script src="mock.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
