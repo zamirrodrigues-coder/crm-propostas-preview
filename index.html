@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>CRM de Propostas: Proposta da Tela de Entrada</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root { --marca: #1d2939; --marca-2: #344054; --borda-forte: #cfd4da; --texto: #17191c; --texto-2: #4b5565; --perigo: #b42318; --ok: #167154; --ok-fundo: #e5f4ed;
+  --crm-surface: #fff; --crm-text-muted: #667085; --crm-border: #e3e5e8; --crm-accent: #246b60; --crm-canvas: #f4f5f7; --raio-p: 6px;
+  --sombra: 0 1px 2px rgba(16,24,40,.06), 0 3px 10px rgba(16,24,40,.05); --fonte: "IBM Plex Sans", "Segoe UI", system-ui, Arial, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--fonte); font-size: 14px; color: var(--texto); background: var(--crm-canvas); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+a { color: var(--crm-accent); }
+.faixa { max-width: 1320px; margin: 0 auto; padding: 28px 20px 8px; }
+.faixa h1 { font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+.faixa p { margin: 0; color: var(--crm-text-muted); }
+.grade { max-width: 1320px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 22px; }
+.quadro > h2 { font-size: 13px; font-weight: 600; color: var(--texto-2); margin: 0 0 10px; }
+.quadro > h2 b { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--marca); color: #fff; font-size: 11px; margin-right: 6px; }
+.entrada-cartao { background: var(--crm-surface); border: 1px solid var(--crm-border); border-radius: 12px; padding: 28px 26px 24px; box-shadow: var(--sombra); }
+.esc-sigla { width: 36px; height: 36px; border-radius: 9px; background: var(--marca); color: #fff; display: grid; place-items: center; font-weight: 300; font-size: 15px; margin-bottom: 18px; }
+.entrada-cartao h3 { margin: 0; font-size: 22px; font-weight: 600; }
+.entrada-cartao .sub { margin: 6px 0 22px; color: var(--crm-text-muted); font-size: 14px; }
+.campo { display: block; margin-bottom: 14px; }
+.campo > span { display: block; font-size: 12px; font-weight: 600; color: var(--texto-2); margin-bottom: 5px; }
+.campo input { width: 100%; padding: 10px 12px; border: 1px solid var(--borda-forte); border-radius: var(--raio-p); background: #fff; outline: none; }
+.campo input:focus { border-color: var(--crm-accent); box-shadow: 0 0 0 3px rgba(36,107,96,.14); }
+.campo small { display: block; font-size: 12px; color: var(--crm-text-muted); margin-top: 4px; }
+/* novo: campo de senha com o olho */
+.senha { position: relative; }
+.senha input { padding-right: 42px; }
+.senha-olho { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 34px; height: 34px; border: 0; background: transparent; border-radius: var(--raio-p); color: var(--crm-text-muted); display: grid; place-items: center; }
+.senha-olho:hover { color: var(--texto); background: #f3f5f6; }
+.senha-olho svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.rotulo-linha { display: flex; justify-content: space-between; align-items: baseline; }
+.rotulo-linha a { font-size: 12px; font-weight: 500; text-decoration: none; }
+.rotulo-linha a:hover { text-decoration: underline; }
+.btn { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--borda-forte); background: #fff; color: var(--texto); border-radius: var(--raio-p); font-weight: 600; }
+.btn-primario { background: var(--marca); border-color: var(--marca); color: #fff; }
+.btn-primario:hover { background: var(--marca-2); }
+.btn-bloco { width: 100%; padding: 11px; font-size: 14px; }
+.voltar { display: block; text-align: center; margin-top: 14px; font-size: 13px; text-decoration: none; }
+.recado { background: var(--ok-fundo); color: var(--ok); border-radius: var(--raio-p); padding: 12px 14px; font-size: 13px; line-height: 1.45; }
+.email { border: 1px solid var(--crm-border); border-radius: 12px; background: #fff; box-shadow: var(--sombra); overflow: hidden; }
+.email-topo { padding: 12px 16px; border-bottom: 1px solid var(--crm-border); font-size: 12px; color: var(--crm-text-muted); line-height: 1.6; }
+.email-topo strong { color: var(--texto); }
+.email-corpo { padding: 18px 16px 20px; line-height: 1.55; }
+.email-corpo p { margin: 0 0 12px; }
+.email-corpo .btn { padding: 10px 16px; text-decoration: none; }
+.nota { font-size: 12px; color: var(--crm-text-muted); margin-top: 10px; line-height: 1.45; }
+</style>
+</head>
+<body>
+<div class="faixa">
+  <h1>Tela de Entrada do CRM: Mostrar Senha e Esqueci a Senha</h1>
+  <p>Proposta para validar. Os quadros são clicáveis: o olho mostra e esconde a senha de verdade.</p>
+</div>
+
+<div class="grade">
+  <section class="quadro">
+    <h2><b>1</b>Entrada com o Olho e o Link</h2>
+    <form class="entrada-cartao" onsubmit="return false">
+      <span class="esc-sigla">ZR</span>
+      <h3>CRM de Propostas</h3>
+      <p class="sub">Entre com o seu e-mail e senha.</p>
+      <label class="campo"><span>E-mail</span><input type="email" value="voce@exemplo.com.br"></label>
+      <div class="campo">
+        <div class="rotulo-linha"><span style="font-size:12px;font-weight:600;color:var(--texto-2);margin-bottom:5px">Senha</span><a href="#q2">Esqueci a Senha</a></div>
+        <div class="senha"><input type="password" value="minhasenha123" aria-label="Senha"><button type="button" class="senha-olho" aria-label="Mostrar Senha" title="Mostrar Senha"></button></div>
+      </div>
+      <button type="button" class="btn btn-primario btn-bloco">Entrar</button>
+    </form>
+  </section>
+
+  <section class="quadro" id="q2">
+    <h2><b>2</b>Esqueci a Senha</h2>
+    <form class="entrada-cartao" onsubmit="this.querySelector('.recado').hidden=false;return false">
+      <span class="esc-sigla">ZR</span>
+      <h3>Esqueci a Senha</h3>
+      <p class="sub">Informe o seu e-mail. Enviamos um link para criar a nova senha.</p>
+      <label class="campo"><span>E-mail</span><input type="email" value="voce@exemplo.com.br"></label>
+      <p class="recado" hidden>Se o e-mail estiver cadastrado, o link chega em instantes. Ele vale por 30 minutos.</p>
+      <button type="submit" class="btn btn-primario btn-bloco">Enviar Link</button>
+      <a class="voltar" href="#">Voltar para a Entrada</a>
+    </form>
+    <p class="nota">A resposta é a mesma para qualquer e-mail, cadastrado ou não, para ninguém descobrir quem tem acesso.</p>
+  </section>
+
+  <section class="quadro">
+    <h2><b>3</b>O E-mail que Chega</h2>
+    <div class="email">
+      <div class="email-topo"><strong>CRM de Propostas</strong><br>Para: voce@exemplo.com.br<br>Assunto: Crie a Sua Nova Senha</div>
+      <div class="email-corpo">
+        <p>Olá, Zamir.</p>
+        <p>Recebemos um pedido para criar uma nova senha no CRM de Propostas.</p>
+        <p><a class="btn btn-primario" href="#q4">Criar Nova Senha</a></p>
+        <p style="color:var(--crm-text-muted);font-size:13px">O link vale por 30 minutos e funciona uma vez só. Se não foi você, ignore este e-mail: a sua senha continua a mesma.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="quadro" id="q4">
+    <h2><b>4</b>Criar Nova Senha (pelo Link)</h2>
+    <form class="entrada-cartao" onsubmit="return false">
+      <span class="esc-sigla">ZR</span>
+      <h3>Crie a Sua Nova Senha</h3>
+      <p class="sub">Depois de salvar, as sessões abertas são encerradas.</p>
+      <div class="campo"><span>Nova Senha</span><div class="senha"><input type="password" value="" aria-label="Nova Senha"><button type="button" class="senha-olho" aria-label="Mostrar Senha" title="Mostrar Senha"></button></div><small>Pelo menos 6 caracteres.</small></div>
+      <div class="campo"><span>Repita a Nova Senha</span><div class="senha"><input type="password" value="" aria-label="Repita a Nova Senha"><button type="button" class="senha-olho" aria-label="Mostrar Senha" title="Mostrar Senha"></button></div></div>
+      <button type="button" class="btn btn-primario btn-bloco">Salvar Senha</button>
+    </form>
+    <p class="nota">O olho entra também na Trocar Senha do menu da conta e na senha provisória do primeiro acesso.</p>
+  </section>
+</div>
+
+<script>
+var ABERTO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+var FECHADO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.1 6.1A17 17 0 0 0 2 12s3.6 7 10 7a9.700 9.700 0 0 0 4.9-1.3"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+document.querySelectorAll('.senha-olho').forEach(function (b) {
+  var campo = b.previousElementSibling;
+  b.innerHTML = ABERTO;
+  b.addEventListener('click', function () {
+    var mostrar = campo.type === 'password';
+    campo.type = mostrar ? 'text' : 'password';
+    b.innerHTML = mostrar ? FECHADO : ABERTO;
+    b.setAttribute('aria-label', mostrar ? 'Esconder Senha' : 'Mostrar Senha');
+    b.title = b.getAttribute('aria-label');
+  });
+});
+</script>
+</body>
+</html>
